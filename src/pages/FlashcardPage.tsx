@@ -1,38 +1,65 @@
-import React, { useState, useEffect } from 'react';
-import { db } from '../firebaseConfig';
-import { collection, addDoc, getDocs, updateDoc, doc } from 'firebase/firestore';
-import { Flashcard } from '../types';
-import { getNextReviewDate } from '../utils/spacedRepetition';
-import { Link, useParams } from 'react-router-dom';
-import { FlashcardViewer } from '../components/FlashcardViewer';
-import { FlashcardAdder } from '../components/FlashcardAdder';
-
+import React, { useState, useEffect } from "react";
+import { db } from "../firebaseConfig";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
+import { Flashcard } from "../types";
+import { getNextReviewDate } from "../utils/spacedRepetition";
+import { useNavigate, useParams } from "react-router-dom";
+import { FlashcardReviewer } from "../components/FlashcardReviewer";
+import { FlashcardAdder } from "../components/FlashcardAdder";
+import { RoundButton } from "../components/RoundButton";
+import { FlashcardHomepage } from "../components/FlashcardHomepage";
 
 const FlashcardPage: React.FC = () => {
+  const navigate = useNavigate();
   const { deckId } = useParams<{ deckId: string }>();
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-  const [flashcardReviewed, setFlashcardReviewed] = useState<Flashcard | null>(null);
-  const [indexCurrentFlashcardReviewed, setIndexCurrentFlashcardReviewed] = useState<number | null>(null);
-  const [openFlashcardAdder, setOpenFlashcardAdder] = useState<boolean>(false);
-
+  const [currentFlashcard, setCurrentFlashcard] = useState<Flashcard | null>(
+    null
+  );
+  const [flashcardInitialCount, setFlashcardInitialCount] = useState<number>(0);
+  const [isFlashcardReviewOpened, setIsFlashcardReviewOpened] =
+    useState<boolean>(false);
+  const [isFlashcardAdderOpened, setIsFlashcardAdderOpened] =
+    useState<boolean>(false);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   useEffect(() => {
-  if(indexCurrentFlashcardReviewed !== null) return setFlashcardReviewed(flashcards[indexCurrentFlashcardReviewed])  
-    setFlashcardReviewed(null)
-  }, [indexCurrentFlashcardReviewed, flashcards]);
+    if (!isFlashcardReviewOpened) return;
+
+    if (!flashcards.length) {
+      setIsFlashcardReviewOpened(false);
+    } else {
+      setCurrentFlashcard(flashcards[0]);
+    }
+  }, [flashcards, isFlashcardReviewOpened]);
 
   useEffect(() => {
     const fetchFlashcards = async () => {
-      const querySnapshot = await getDocs(collection(db, `decks/${deckId}/flashcards`));
-      const flashcardsData: Flashcard[] = querySnapshot.docs.map<Flashcard>(doc => ({
-        id: doc.id,
-        question: doc.data().question,
-        answer: doc.data().answer,
-        reviewDate: doc.data().reviewDate.toDate(),
-        reviewCount: doc.data().reviewCount,       
-      }));
-      console.log("flashcardsData", flashcardsData)
-      setFlashcards(flashcardsData.filter(flashcard => flashcard.reviewDate.getTime() < new Date().setHours(23, 59, 59, 0)));
+      const querySnapshot = await getDocs(
+        collection(db, `decks/${deckId}/flashcards`)
+      );
+      const flashcardsData: Flashcard[] = querySnapshot.docs.map<Flashcard>(
+        (doc) => ({
+          id: doc.id,
+          question: doc.data().question,
+          answer: doc.data().answer,
+          reviewDate: doc.data().reviewDate.toDate(),
+          reviewCount: doc.data().reviewCount,
+        })
+      );
+      const filteredData: Flashcard[] = flashcardsData.filter(
+        (flashcard) =>
+          flashcard.reviewDate.getTime() < new Date().setHours(23, 59, 59, 0)
+      );
+      setFlashcards(filteredData);
+      setFlashcardInitialCount(filteredData.length);
+      setIsDataLoaded(true);
     };
 
     fetchFlashcards();
@@ -40,67 +67,112 @@ const FlashcardPage: React.FC = () => {
 
   const addFlashcard = async (newQuestion: string, newAnswer: string) => {
     if (newQuestion && newAnswer) {
-      const docRef = await addDoc(collection(db, `decks/${deckId}/flashcards`), {
-        question: newQuestion,
-        answer: newAnswer,
-        reviewDate: new Date(),
-        reviewCount: 0
-      });
-      setFlashcards([...flashcards, { id: docRef.id, question: newQuestion, answer: newAnswer, reviewDate: new Date(), reviewCount: 0 }]);
+      const docRef = await addDoc(
+        collection(db, `decks/${deckId}/flashcards`),
+        {
+          question: newQuestion,
+          answer: newAnswer,
+          reviewDate: new Date(),
+          reviewCount: 0,
+        }
+      );
+      setFlashcards([
+        ...flashcards,
+        {
+          id: docRef.id,
+          question: newQuestion,
+          answer: newAnswer,
+          reviewDate: new Date(),
+          reviewCount: 0,
+        },
+      ]);
     }
   };
-  const nextFlashcard = () => setIndexCurrentFlashcardReviewed(previous => {
-    if(previous !== null && previous +1 >= flashcards.length) {
-      setFlashcards([])
-      return null};  
-    return previous !== null ? previous+1 :  0})
 
-  const markAsReviewed = async (flashcardId: string, reviewCount: number, previousReviewDate: Date) => {
-    const nextReviewDate = getNextReviewDate(previousReviewDate, reviewCount + 1);
-    await updateDoc(doc(db, `decks/${deckId}/flashcards`, flashcardId), {
-      reviewDate: nextReviewDate,
-      reviewCount: reviewCount + 1
+  const markAsReviewed = async (reviewedFlashcard: Flashcard) => {
+    const nextReviewDate = getNextReviewDate(
+      reviewedFlashcard.reviewDate,
+      reviewedFlashcard.reviewCount + 1
+    );
+    await updateDoc(
+      doc(db, `decks/${deckId}/flashcards`, reviewedFlashcard.id),
+      {
+        reviewDate: nextReviewDate,
+        reviewCount: reviewedFlashcard.reviewCount + 1,
+      }
+    );
+    setFlashcards((prevFlashcards) => {
+      return prevFlashcards.filter(
+        (flashcard) => flashcard.id !== reviewedFlashcard.id
+      );
     });
-    setFlashcards(flashcards.map(flashcard =>
-      flashcard.id === flashcardId ? { ...flashcard, reviewDate: nextReviewDate, reviewCount: reviewCount + 1 } : flashcard
-    ));
-    nextFlashcard()
   };
 
-  const markAsFailed = async (flashcardId: string) => {
-    await updateDoc(doc(db, `decks/${deckId}/flashcards`, flashcardId), {
+  const markAsFailed = async (failedFlashcardId: string) => {
+    await updateDoc(doc(db, `decks/${deckId}/flashcards`, failedFlashcardId), {
       reviewDate: new Date(),
-      reviewCount: 0
+      reviewCount: 0,
     });
-    setFlashcards(flashcards.map(flashcard =>
-      flashcard.id === flashcardId ? { ...flashcard, reviewDate: new Date(), reviewCount: 0 } : flashcard
-    ));
+    setFlashcards((prevFlashcards) =>
+      prevFlashcards.filter((flashcard) => flashcard.id !== failedFlashcardId)
+    );
   };
 
+  const goBack = () => {
+    switch (true) {
+      case isFlashcardReviewOpened:
+        setIsFlashcardReviewOpened(false);
+        break;
+      case isFlashcardAdderOpened:
+        setIsFlashcardAdderOpened(false);
+        break;
+      default:
+        navigate(-1);
+        break;
+    }
+  };
 
   return (
-    <div>
-      <h2>Flashcards</h2>
-      {openFlashcardAdder && <FlashcardAdder addFlashcard={addFlashcard}/>}
-      {flashcards.length ? <div> {`Nombre de cartes à réviser aujourd'hui : ${flashcards.length}`}
-          </div> : <p>You finished all your flashcards for the day, you deverve a break !</p>}
+    <>
+      {isDataLoaded ? (
+        <div className="relative flex flex-col w-screen h-screen items-center justify-center space-y-12">
+          <h1>Cartes</h1>
+          {!(isFlashcardReviewOpened || isFlashcardAdderOpened) && (
+            <FlashcardHomepage
+              numberOfCards={flashcards.length}
+              setIsFlashcardReviewOpened={setIsFlashcardReviewOpened}
+              setIsFlashcardAdderOpened={setIsFlashcardAdderOpened}
+            />
+          )}
 
-      {flashcardReviewed && <FlashcardViewer 
-        question={flashcardReviewed.question}
-        answer={flashcardReviewed.answer}
-        id={flashcardReviewed.id}
-        reviewCount={flashcardReviewed.reviewCount}
-        reviewDate={flashcardReviewed.reviewDate}
-        markAsReviewed={markAsReviewed}
-        markAsFailed={markAsFailed}
-       />}
-       <button onClick={() => setOpenFlashcardAdder(!openFlashcardAdder)}>{openFlashcardAdder ? "Close" : "Add Flashcard"}</button>
-       {flashcardReviewed ? <button onClick={() => setIndexCurrentFlashcardReviewed(null)}>Stop Learning</button> : <button onClick={nextFlashcard}>Start Learning</button>}
+          {isFlashcardReviewOpened && currentFlashcard && (
+            <FlashcardReviewer
+              key={currentFlashcard.id}
+              flashcard={currentFlashcard}
+              flashcardsCounter={flashcards.length}
+              flashcardInitialCount={flashcardInitialCount}
+              markAsReviewed={markAsReviewed}
+              markAsFailed={markAsFailed}
+              setIsFlashcardReviewOpened={setIsFlashcardReviewOpened}
+            />
+          )}
 
-       <Link to={"/"}>Back to Decks</Link>
+          {isFlashcardAdderOpened && (
+            <FlashcardAdder
+              addFlashcard={addFlashcard}
+              setIsFlashcardAdderOpened={setIsFlashcardAdderOpened}
+            />
+          )}
 
-    </div>
+          <RoundButton onClick={goBack} position="left">
+            {"<"}
+          </RoundButton>
+        </div>
+      ) : (
+        <div>CHARGEMENT DES DONNEES...</div>
+      )}
+    </>
   );
-}
+};
 
 export default FlashcardPage;
