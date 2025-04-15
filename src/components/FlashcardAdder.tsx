@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "./Button";
 import { TextArea } from "./TextArea";
-import { RoundButton } from "./RoundButton";
 
 interface FlashcardAdderProps {
   addFlashcard: (question: string, answer: string) => void;
@@ -10,12 +9,18 @@ interface FlashcardAdderProps {
 
 export const FlashcardAdder: React.FC<FlashcardAdderProps> = ({
   addFlashcard,
-  setIsFlashcardAdderOpened,
 }) => {
   const [newQuestion, setNewQuestion] = useState("");
   const [newAnswer, setNewAnswer] = useState("");
+  const [newCardCounter, setNewCardCounter] = useState<number>(0);
+
   return (
     <>
+      <p className="font-extrabold text-4xl">Ajouter une carte</p>
+      <p>
+        Carte ajoutées :
+        <b className="text-contrast font-bold pl-2">{newCardCounter}</b>
+      </p>
       <TextArea
         value={newQuestion}
         onChange={(e) => setNewQuestion(e.target.value)}
@@ -31,6 +36,7 @@ export const FlashcardAdder: React.FC<FlashcardAdderProps> = ({
       <Button
         onClick={() => {
           addFlashcard(newQuestion, newAnswer);
+          setNewCardCounter((prev) => prev + 1);
           setNewQuestion("");
           setNewAnswer("");
         }}
@@ -38,12 +44,6 @@ export const FlashcardAdder: React.FC<FlashcardAdderProps> = ({
       >
         Ajouter carte
       </Button>
-      <RoundButton
-        onClick={() => setIsFlashcardAdderOpened(false)}
-        position="right"
-      >
-        X
-      </RoundButton>
     </>
   );
 };

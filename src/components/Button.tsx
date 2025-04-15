@@ -1,11 +1,13 @@
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant: "primary" | "secondary" | "highlight" | "contrast";
+  outlineStyle?: boolean;
   additionnalClassName?: string;
   children: React.ReactNode;
 }
 
 export const Button: React.FC<ButtonProps> = ({
   variant,
+  outlineStyle,
   additionnalClassName,
   children,
   ...props
@@ -13,16 +15,24 @@ export const Button: React.FC<ButtonProps> = ({
   let backgroundColor = "";
   switch (variant) {
     case "primary":
-      backgroundColor = "bg-primary";
+      backgroundColor = outlineStyle
+        ? "border border-primary border-2"
+        : "bg-primary";
       break;
     case "secondary":
-      backgroundColor = "bg-secondary";
+      backgroundColor = outlineStyle
+        ? "border border-secondary border-2"
+        : "bg-secondary";
       break;
     case "highlight":
-      backgroundColor = "bg-highlight";
+      backgroundColor = outlineStyle
+        ? "border border-highlight border-2"
+        : "bg-highlight";
       break;
     case "contrast":
-      backgroundColor = "bg-contrast";
+      backgroundColor = outlineStyle
+        ? "border border-contrast border-2"
+        : "bg-contrast";
       break;
   }
   return (

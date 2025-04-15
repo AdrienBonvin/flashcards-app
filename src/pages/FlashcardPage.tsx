@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../firebaseConfig";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  updateDoc,
-  doc,
-} from "firebase/firestore";
-import { Flashcard } from "../types";
+import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
+import { Deck, Flashcard, flashcardUtils } from "../types";
 import { getNextReviewDate } from "../utils/spacedRepetition";
 import { useNavigate, useParams } from "react-router-dom";
 import { FlashcardReviewer } from "../components/FlashcardReviewer";
 import { FlashcardAdder } from "../components/FlashcardAdder";
 import { RoundButton } from "../components/RoundButton";
 import { FlashcardHomepage } from "../components/FlashcardHomepage";
+import ChevronLeft from "@mui/icons-material/ChevronLeft";
+import { useUserDataContext } from "../contexts/UserDataContext";
+import { ProgressBar } from "../components/ProgressBar";
 
 const FlashcardPage: React.FC = () => {
   const navigate = useNavigate();
   const { deckId } = useParams<{ deckId: string }>();
-  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const { decks, removeDeck } = useUserDataContext();
+
+  const [flashcardsToReview, setFlashcardsToReview] = useState<Flashcard[]>([]);
+  const [deck, setDeck] = useState<Deck>({} as Deck);
   const [currentFlashcard, setCurrentFlashcard] = useState<Flashcard | null>(
     null
   );
@@ -32,38 +32,30 @@ const FlashcardPage: React.FC = () => {
   useEffect(() => {
     if (!isFlashcardReviewOpened) return;
 
-    if (!flashcards.length) {
+    if (!flashcardsToReview.length) {
       setIsFlashcardReviewOpened(false);
     } else {
-      setCurrentFlashcard(flashcards[0]);
+      setCurrentFlashcard(flashcardsToReview[0]);
     }
-  }, [flashcards, isFlashcardReviewOpened]);
+  }, [flashcardsToReview, isFlashcardReviewOpened]);
 
   useEffect(() => {
-    const fetchFlashcards = async () => {
-      const querySnapshot = await getDocs(
-        collection(db, `decks/${deckId}/flashcards`)
-      );
-      const flashcardsData: Flashcard[] = querySnapshot.docs.map<Flashcard>(
-        (doc) => ({
-          id: doc.id,
-          question: doc.data().question,
-          answer: doc.data().answer,
-          reviewDate: doc.data().reviewDate.toDate(),
-          reviewCount: doc.data().reviewCount,
-        })
-      );
-      const filteredData: Flashcard[] = flashcardsData.filter(
-        (flashcard) =>
-          flashcard.reviewDate.getTime() < new Date().setHours(23, 59, 59, 0)
-      );
-      setFlashcards(filteredData);
-      setFlashcardInitialCount(filteredData.length);
-      setIsDataLoaded(true);
-    };
+    setDeck(decks.find((deck) => deck.id === deckId) ?? ({} as Deck));
+  }, [decks, deckId]);
 
-    fetchFlashcards();
-  }, [deckId]);
+  useEffect(() => {
+    if (deck.id) {
+      setIsDataLoaded(true);
+      setFlashcardsToReview(flashcardUtils.getReviewableCards(deck.flashcards));
+      setIsDataLoaded(true);
+    }
+  }, [deck]);
+
+  useEffect(() => {
+    if (flashcardsToReview.length) {
+      setFlashcardInitialCount(flashcardsToReview.length);
+    }
+  }, [flashcardsToReview]);
 
   const addFlashcard = async (newQuestion: string, newAnswer: string) => {
     if (newQuestion && newAnswer) {
@@ -76,16 +68,19 @@ const FlashcardPage: React.FC = () => {
           reviewCount: 0,
         }
       );
-      setFlashcards([
-        ...flashcards,
-        {
-          id: docRef.id,
-          question: newQuestion,
-          answer: newAnswer,
-          reviewDate: new Date(),
-          reviewCount: 0,
-        },
-      ]);
+      setDeck((prevDeck) => ({
+        ...prevDeck,
+        flashcards: [
+          ...prevDeck.flashcards,
+          {
+            id: docRef.id,
+            question: newQuestion,
+            answer: newAnswer,
+            reviewDate: new Date(),
+            reviewCount: 0,
+          },
+        ],
+      }));
     }
   };
 
@@ -101,7 +96,7 @@ const FlashcardPage: React.FC = () => {
         reviewCount: reviewedFlashcard.reviewCount + 1,
       }
     );
-    setFlashcards((prevFlashcards) => {
+    setFlashcardsToReview((prevFlashcards) => {
       return prevFlashcards.filter(
         (flashcard) => flashcard.id !== reviewedFlashcard.id
       );
@@ -110,10 +105,10 @@ const FlashcardPage: React.FC = () => {
 
   const markAsFailed = async (failedFlashcardId: string) => {
     await updateDoc(doc(db, `decks/${deckId}/flashcards`, failedFlashcardId), {
-      reviewDate: new Date(),
+      reviewDate: new Date(new Date().setDate(new Date().getDate() + 1)),
       reviewCount: 0,
     });
-    setFlashcards((prevFlashcards) =>
+    setFlashcardsToReview((prevFlashcards) =>
       prevFlashcards.filter((flashcard) => flashcard.id !== failedFlashcardId)
     );
   };
@@ -136,25 +131,35 @@ const FlashcardPage: React.FC = () => {
     <>
       {isDataLoaded ? (
         <div className="relative flex flex-col w-screen h-screen items-center justify-center space-y-12">
-          <h1>Cartes</h1>
           {!(isFlashcardReviewOpened || isFlashcardAdderOpened) && (
             <FlashcardHomepage
-              numberOfCards={flashcards.length}
+              numberOfCards={flashcardsToReview.length}
+              totalCards={deck.flashcards.length}
+              deckName={deck.name}
               setIsFlashcardReviewOpened={setIsFlashcardReviewOpened}
               setIsFlashcardAdderOpened={setIsFlashcardAdderOpened}
+              removeDeck={() => {
+                removeDeck(deckId ?? "");
+                navigate(-1);
+              }}
             />
           )}
 
           {isFlashcardReviewOpened && currentFlashcard && (
-            <FlashcardReviewer
-              key={currentFlashcard.id}
-              flashcard={currentFlashcard}
-              flashcardsCounter={flashcards.length}
-              flashcardInitialCount={flashcardInitialCount}
-              markAsReviewed={markAsReviewed}
-              markAsFailed={markAsFailed}
-              setIsFlashcardReviewOpened={setIsFlashcardReviewOpened}
-            />
+            <>
+              <ProgressBar
+                initialCount={flashcardInitialCount}
+                counter={flashcardsToReview.length}
+                className="mt-10 w-5/6"
+              />
+              <FlashcardReviewer
+                key={currentFlashcard.id}
+                flashcard={currentFlashcard}
+                markAsReviewed={markAsReviewed}
+                markAsFailed={markAsFailed}
+                setIsFlashcardReviewOpened={setIsFlashcardReviewOpened}
+              />
+            </>
           )}
 
           {isFlashcardAdderOpened && (
@@ -165,12 +170,10 @@ const FlashcardPage: React.FC = () => {
           )}
 
           <RoundButton onClick={goBack} position="left">
-            {"<"}
+            <ChevronLeft />
           </RoundButton>
         </div>
-      ) : (
-        <div>CHARGEMENT DES DONNEES...</div>
-      )}
+      ) : null}
     </>
   );
 };

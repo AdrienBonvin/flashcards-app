@@ -1,43 +1,71 @@
-import { Button } from "./Button";
+import PostAdd from "@mui/icons-material/PostAdd";
+import { Icon } from "./icons/Icon";
 import { RoundButton } from "./RoundButton";
+import Celebration from "@mui/icons-material/Celebration";
+import Delete from "@mui/icons-material/Delete";
 import { TextCounter } from "./TextCounter";
 
 interface FlashcardHomepageProps {
   numberOfCards: number;
+  totalCards: number;
+  deckName: string;
   setIsFlashcardReviewOpened(isOpened: boolean): void;
   setIsFlashcardAdderOpened(isOpened: boolean): void;
+  removeDeck(): void;
 }
 
 export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
   numberOfCards,
+  totalCards,
+  deckName,
   setIsFlashcardReviewOpened,
   setIsFlashcardAdderOpened,
+  removeDeck,
 }) => {
+  console.log("totalCards :>> ", totalCards);
   return (
     <>
       {numberOfCards > 0 ? (
         <>
-          <TextCounter
-            text={"Nombre de cartes à réviser aujourd'hui :"}
-            counter={numberOfCards}
-          />
-          <Button
-            variant="primary"
+          <RoundButton
+            position={"inline"}
+            className="w-40 h-40 border-none"
             onClick={() => setIsFlashcardReviewOpened(true)}
           >
-            Apprendre
-          </Button>
+            <Icon
+              iconName="deck"
+              className="text-primary w-40 stroke-highlight stroke-2"
+            />
+          </RoundButton>
+          <h1 className="text-7xl">{deckName}</h1>
+          <TextCounter
+            text="Cartes d'aujourd'hui"
+            classNameText="text-gray-500 font-semibold"
+            counter={numberOfCards}
+          />
         </>
-      ) : (
-        <p>
-          Il ne reste aucune carte à réviser aujourd'hui, tu as mérité un café !
+      ) : totalCards === 0 ? (
+        <p className="w-3/4 text-center font-extrabold">
+          Ajoutez votre première carte !
         </p>
+      ) : (
+        <>
+          <p className="w-3/4 text-center font-extrabold">
+            Il ne reste aucune carte à réviser aujourd'hui, tu as mérité un café
+            !
+          </p>
+          <Celebration />
+        </>
       )}
       <RoundButton
         onClick={() => setIsFlashcardAdderOpened(true)}
         position="right"
+        className={totalCards === 0 ? "shadow-lg shadow-contrast" : ""}
       >
-        +
+        <PostAdd />
+      </RoundButton>
+      <RoundButton onClick={removeDeck} position="top">
+        <Delete />
       </RoundButton>
     </>
   );
