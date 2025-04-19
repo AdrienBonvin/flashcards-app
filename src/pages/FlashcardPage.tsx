@@ -40,7 +40,7 @@ const FlashcardPage: React.FC = () => {
   }, [flashcardsToReview, isFlashcardReviewOpened]);
 
   useEffect(() => {
-    setDeck(decks.find((deck) => deck.id === deckId) ?? ({} as Deck));
+    setDeck(decks?.find((deck) => deck.id === deckId) ?? ({} as Deck));
   }, [decks, deckId]);
 
   useEffect(() => {

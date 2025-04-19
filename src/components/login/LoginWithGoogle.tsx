@@ -19,6 +19,7 @@ export const LoginWithGoogle: React.FC = () => {
       variant="primary"
       additionnalClassName="flex items-center justify-center gap-2 mb-8"
       onClick={handleGoogleLogin}
+      outlineStyle
     >
       <img
         src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg"

@@ -16,8 +16,8 @@ import {
 import { db } from "../firebaseConfig";
 
 interface UserDataContextProps {
-  decks: Deck[];
-  setDecks: React.Dispatch<React.SetStateAction<Deck[]>>;
+  decks: Deck[] | null;
+  setDecks: React.Dispatch<React.SetStateAction<Deck[] | null>>;
   selectedDeck: Deck | null;
   setSelectedDeck: React.Dispatch<React.SetStateAction<Deck | null>>;
   addDeck: (newDeckName: string) => Promise<void>;
@@ -32,10 +32,11 @@ const UserDataContext = createContext<UserDataContextProps | undefined>(
 export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [decks, setDecks] = useState<Deck[]>([]);
+  const [decks, setDecks] = useState<Deck[] | null>(null);
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
 
   const loadData = useCallback(() => {
+    setDecks(null);
     const fetchDecks = async () => {
       const querySnapshot = await getDocs(collection(db, "decks"));
       const decksData = (await Promise.all(
@@ -69,14 +70,19 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
         name: newDeckName,
         flashcards: [],
       });
-      setDecks([
-        ...decks,
-        { id: docRef.id, name: newDeckName, flashcards: [] },
-      ]);
+      if (decks) {
+        setDecks([
+          ...decks,
+          { id: docRef.id, name: newDeckName, flashcards: [] },
+        ]);
+      } else {
+        setDecks([{ id: docRef.id, name: newDeckName, flashcards: [] }]);
+      }
     }
   };
 
   const removeDeck = async (deckId: string) => {
+    if (!decks) return;
     try {
       await deleteDoc(doc(collection(db, "decks"), deckId));
       setDecks(decks.filter((deck) => deck.id !== deckId));
@@ -84,7 +90,6 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
       console.error("Error removing deck: ", error);
     }
   };
-
   return (
     <UserDataContext.Provider
       value={{

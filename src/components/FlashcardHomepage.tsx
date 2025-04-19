@@ -22,7 +22,6 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
   setIsFlashcardAdderOpened,
   removeDeck,
 }) => {
-  console.log("totalCards :>> ", totalCards);
   return (
     <>
       {numberOfCards > 0 ? (
@@ -37,7 +36,7 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
               className="text-primary w-40 stroke-highlight stroke-2"
             />
           </RoundButton>
-          <h1 className="text-7xl">{deckName}</h1>
+          <h1 className="text-7xl w-4/5 text-center">{deckName}</h1>
           <TextCounter
             text="Cartes d'aujourd'hui"
             classNameText="text-gray-500 font-semibold"
