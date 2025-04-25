@@ -8,10 +8,7 @@ export const Loader: React.FC<LoaderProps> = ({ loading, children }) => {
     <>
       {loading ? (
         <div className="w-screen h-screen flex items-center justify-center">
-          <img
-            src={"/public/icons/logo.png"}
-            className="w-24 h-24 animate-pulse"
-          />
+          <img src="/icons/logo.png" className="w-24 h-24 animate-pulse" />
         </div>
       ) : (
         children
