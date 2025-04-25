@@ -4,7 +4,6 @@ import { TextArea } from "./TextArea";
 
 interface FlashcardAdderProps {
   addFlashcard: (question: string, answer: string) => void;
-  setIsFlashcardAdderOpened: (isOpened: boolean) => void;
 }
 
 export const FlashcardAdder: React.FC<FlashcardAdderProps> = ({
@@ -24,13 +23,13 @@ export const FlashcardAdder: React.FC<FlashcardAdderProps> = ({
       <TextArea
         value={newQuestion}
         onChange={(e) => setNewQuestion(e.target.value)}
-        className="min-h-[10vh] min-w-[75vw] p-5"
+        className="min-h-[10vh] min-w-[75vw] py-1 px-4"
         placeholder="Nouvelle question..."
       />
       <TextArea
         value={newAnswer}
         onChange={(e) => setNewAnswer(e.target.value)}
-        className="min-h-[15vh] min-w-[75vw] p-5"
+        className="min-h-[15vh] min-w-[75vw] py-1 px-4"
         placeholder="Réponse..."
       />
       <Button

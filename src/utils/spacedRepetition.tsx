@@ -1,11 +1,11 @@
-export const getNextReviewDate = (previousReviewDate: Date, reviewCount: number): Date => {
-      const fibonacci = (n: number): number => {
-      if (n <= 1) return n;
-      return fibonacci(n - 1) + fibonacci(n - 2);
-    };
-  
-    const daysToAdd = fibonacci(reviewCount);
-    const nextReviewDate = new Date(previousReviewDate);
-    nextReviewDate.setDate(nextReviewDate.getDate() + daysToAdd);
-    return nextReviewDate;
+export const getNextReviewDate = (reviewCount: number): Date => {
+  const addFibonacci = (n: number): number => {
+    if (n <= 1) return n;
+    return addFibonacci(n - 1) + addFibonacci(n - 2);
   };
+
+  const daysToAdd = addFibonacci(reviewCount);
+  const nextReviewDate = new Date();
+  nextReviewDate.setDate(nextReviewDate.getDate() + daysToAdd);
+  return nextReviewDate;
+};

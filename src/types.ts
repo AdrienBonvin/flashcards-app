@@ -7,6 +7,7 @@ export interface Flashcard {
 }
 
 export interface Deck {
+  userId: string;
   id: string;
   name: string;
   flashcards: Flashcard[];

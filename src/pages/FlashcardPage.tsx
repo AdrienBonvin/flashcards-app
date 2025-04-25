@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../firebaseConfig";
-import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  doc,
+  deleteDoc,
+} from "firebase/firestore";
 import { Deck, Flashcard, flashcardUtils } from "../types";
 import { getNextReviewDate } from "../utils/spacedRepetition";
 import { useNavigate, useParams } from "react-router-dom";
@@ -11,6 +17,7 @@ import { FlashcardHomepage } from "../components/FlashcardHomepage";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import { useUserDataContext } from "../contexts/UserDataContext";
 import { ProgressBar } from "../components/ProgressBar";
+import FlashcardEditor from "../components/FlashcardEditor";
 
 const FlashcardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,6 +33,8 @@ const FlashcardPage: React.FC = () => {
   const [isFlashcardReviewOpened, setIsFlashcardReviewOpened] =
     useState<boolean>(false);
   const [isFlashcardAdderOpened, setIsFlashcardAdderOpened] =
+    useState<boolean>(false);
+  const [isFlashcardRemoverOpened, setIsFlashcardRemoverOpened] =
     useState<boolean>(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
 
@@ -84,11 +93,38 @@ const FlashcardPage: React.FC = () => {
     }
   };
 
-  const markAsReviewed = async (reviewedFlashcard: Flashcard) => {
-    const nextReviewDate = getNextReviewDate(
-      reviewedFlashcard.reviewDate,
-      reviewedFlashcard.reviewCount + 1
+  const updateFlashcard = async (editedFlashcard: Flashcard) => {
+    await updateDoc(doc(db, `decks/${deckId}/flashcards`, editedFlashcard.id), {
+      question: editedFlashcard.question,
+      answer: editedFlashcard.answer,
+    });
+    setDeck((prevDeck) => {
+      return {
+        ...prevDeck,
+        flashcards: prevDeck.flashcards.map((flashcard) =>
+          flashcard.id === editedFlashcard.id ? editedFlashcard : flashcard
+        ),
+      };
+    });
+  };
+
+  const removeFlashcard = async (flashcardId: string) => {
+    await deleteDoc(doc(db, `decks/${deckId}/flashcards`, flashcardId));
+    setDeck((prevDeck) => {
+      return {
+        ...prevDeck,
+        flashcards: prevDeck.flashcards.filter(
+          (flashcard) => flashcard.id !== flashcardId
+        ),
+      };
+    });
+    setFlashcardsToReview((prevFlashcards) =>
+      prevFlashcards.filter((flashcard) => flashcard.id !== flashcardId)
     );
+  };
+
+  const markAsReviewed = async (reviewedFlashcard: Flashcard) => {
+    const nextReviewDate = getNextReviewDate(reviewedFlashcard.reviewCount + 1);
     await updateDoc(
       doc(db, `decks/${deckId}/flashcards`, reviewedFlashcard.id),
       {
@@ -121,6 +157,9 @@ const FlashcardPage: React.FC = () => {
       case isFlashcardAdderOpened:
         setIsFlashcardAdderOpened(false);
         break;
+      case isFlashcardRemoverOpened:
+        setIsFlashcardRemoverOpened(false);
+        break;
       default:
         navigate(-1);
         break;
@@ -130,14 +169,19 @@ const FlashcardPage: React.FC = () => {
   return (
     <>
       {isDataLoaded ? (
-        <div className="relative flex flex-col w-screen h-screen items-center justify-center space-y-12">
-          {!(isFlashcardReviewOpened || isFlashcardAdderOpened) && (
+        <div className="flex flex-col w-screen h-screen items-center justify-center gap-y-12">
+          {!(
+            isFlashcardReviewOpened ||
+            isFlashcardAdderOpened ||
+            isFlashcardRemoverOpened
+          ) && (
             <FlashcardHomepage
               numberOfCards={flashcardsToReview.length}
               totalCards={deck.flashcards.length}
               deckName={deck.name}
               setIsFlashcardReviewOpened={setIsFlashcardReviewOpened}
               setIsFlashcardAdderOpened={setIsFlashcardAdderOpened}
+              setIsFlashcardRemoverOpened={setIsFlashcardRemoverOpened}
               removeDeck={() => {
                 removeDeck(deckId ?? "");
                 navigate(-1);
@@ -150,7 +194,7 @@ const FlashcardPage: React.FC = () => {
               <ProgressBar
                 initialCount={flashcardInitialCount}
                 counter={flashcardsToReview.length}
-                className="mt-10 w-5/6"
+                className="w-5/6"
               />
               <FlashcardReviewer
                 key={currentFlashcard.id}
@@ -163,9 +207,14 @@ const FlashcardPage: React.FC = () => {
           )}
 
           {isFlashcardAdderOpened && (
-            <FlashcardAdder
-              addFlashcard={addFlashcard}
-              setIsFlashcardAdderOpened={setIsFlashcardAdderOpened}
+            <FlashcardAdder addFlashcard={addFlashcard} />
+          )}
+
+          {isFlashcardRemoverOpened && (
+            <FlashcardEditor
+              flashcards={deck.flashcards}
+              removeFlashcard={removeFlashcard}
+              updateFlashcard={updateFlashcard}
             />
           )}
 

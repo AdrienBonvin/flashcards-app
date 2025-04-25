@@ -2,8 +2,8 @@ import PostAdd from "@mui/icons-material/PostAdd";
 import { Icon } from "./icons/Icon";
 import { RoundButton } from "./RoundButton";
 import Celebration from "@mui/icons-material/Celebration";
-import Delete from "@mui/icons-material/Delete";
 import { TextCounter } from "./TextCounter";
+import { DeleteForever, TouchApp, ViewCarousel } from "@mui/icons-material";
 
 interface FlashcardHomepageProps {
   numberOfCards: number;
@@ -11,6 +11,7 @@ interface FlashcardHomepageProps {
   deckName: string;
   setIsFlashcardReviewOpened(isOpened: boolean): void;
   setIsFlashcardAdderOpened(isOpened: boolean): void;
+  setIsFlashcardRemoverOpened(isOpened: boolean): void;
   removeDeck(): void;
 }
 
@@ -20,12 +21,21 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
   deckName,
   setIsFlashcardReviewOpened,
   setIsFlashcardAdderOpened,
+  setIsFlashcardRemoverOpened,
   removeDeck,
 }) => {
   return (
     <>
       {numberOfCards > 0 ? (
-        <>
+        <div className="flex flex-col items-center justify-center gap-8 w-full">
+          <h1 className="text-5xl w-10/12 h-fit text-center overflow-hidden text-nowrap">
+            {deckName}
+          </h1>
+          <TextCounter
+            text="Cartes aujourd'hui :"
+            classNameText="text-gray-500 font-semibold"
+            counter={numberOfCards}
+          />
           <RoundButton
             position={"inline"}
             className="w-40 h-40 border-none"
@@ -36,13 +46,10 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
               className="text-primary w-40 stroke-highlight stroke-2"
             />
           </RoundButton>
-          <h1 className="text-7xl w-4/5 text-center">{deckName}</h1>
-          <TextCounter
-            text="Cartes d'aujourd'hui"
-            classNameText="text-gray-500 font-semibold"
-            counter={numberOfCards}
-          />
-        </>
+          <p className="text-gray-600 mt-[-1rem]">
+            Cliquez sur le deck <TouchApp />
+          </p>
+        </div>
       ) : totalCards === 0 ? (
         <p className="w-3/4 text-center font-extrabold">
           Ajoutez votre première carte !
@@ -63,8 +70,14 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
       >
         <PostAdd />
       </RoundButton>
-      <RoundButton onClick={removeDeck} position="top">
-        <Delete />
+      <RoundButton
+        onClick={() => setIsFlashcardRemoverOpened(true)}
+        position="top-right"
+      >
+        <ViewCarousel />
+      </RoundButton>
+      <RoundButton onClick={removeDeck} position="top-left">
+        <DeleteForever />
       </RoundButton>
     </>
   );

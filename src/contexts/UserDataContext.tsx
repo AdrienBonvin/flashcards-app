@@ -4,6 +4,7 @@ import React, {
   ReactNode,
   useContext,
   useCallback,
+  useEffect,
 } from "react";
 import { Deck, Flashcard } from "../types";
 import {
@@ -12,8 +13,11 @@ import {
   addDoc,
   deleteDoc,
   doc,
+  query,
+  where,
 } from "firebase/firestore";
-import { db } from "../firebaseConfig";
+import { auth, db } from "../firebaseConfig";
+import { User, onAuthStateChanged } from "firebase/auth";
 
 interface UserDataContextProps {
   decks: Deck[] | null;
@@ -34,11 +38,23 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [decks, setDecks] = useState<Deck[] | null>(null);
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const loadData = useCallback(() => {
+    if (!user) return;
     setDecks(null);
     const fetchDecks = async () => {
-      const querySnapshot = await getDocs(collection(db, "decks"));
+      const q = query(collection(db, "decks"), where("userId", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+
       const decksData = (await Promise.all(
         querySnapshot.docs.map(async (deck) => {
           const flashcardsSnapshot = await getDocs(
@@ -48,7 +64,7 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
             id: flashcard.id,
             question: flashcard.data().question,
             answer: flashcard.data().answer,
-            reviewDate: flashcard.data().reviewDate.toDate(),
+            reviewDate: flashcard.data().reviewDate?.toDate(),
             reviewCount: flashcard.data().reviewCount,
           })) as Flashcard[];
           return {
@@ -60,24 +76,27 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
       )) as Deck[];
       setDecks(decksData);
     };
-
     fetchDecks();
-  }, []);
+  }, [user]);
 
   const addDeck = async (newDeckName: string) => {
-    if (newDeckName) {
-      const docRef = await addDoc(collection(db, "decks"), {
-        name: newDeckName,
-        flashcards: [],
-      });
-      if (decks) {
-        setDecks([
-          ...decks,
-          { id: docRef.id, name: newDeckName, flashcards: [] },
-        ]);
-      } else {
-        setDecks([{ id: docRef.id, name: newDeckName, flashcards: [] }]);
-      }
+    if (!user || !newDeckName) return;
+
+    const docRef = await addDoc(collection(db, "decks"), {
+      name: newDeckName,
+      userId: user.uid,
+      flashcards: [],
+    });
+
+    if (decks) {
+      setDecks([
+        ...decks,
+        { userId: user.uid, id: docRef.id, name: newDeckName, flashcards: [] },
+      ]);
+    } else {
+      setDecks([
+        { userId: user.uid, id: docRef.id, name: newDeckName, flashcards: [] },
+      ]);
     }
   };
 
@@ -90,6 +109,7 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
       console.error("Error removing deck: ", error);
     }
   };
+
   return (
     <UserDataContext.Provider
       value={{

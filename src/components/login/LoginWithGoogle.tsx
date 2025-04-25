@@ -26,7 +26,7 @@ export const LoginWithGoogle: React.FC = () => {
         alt="Google Logo"
         className="w-5 h-5"
       />
-      Login with Google
+      Connexion
     </Button>
   );
 };

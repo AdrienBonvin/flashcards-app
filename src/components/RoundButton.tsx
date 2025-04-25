@@ -1,5 +1,5 @@
 interface RoundButton extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  position: "right" | "left" | "center" | "top" | "inline";
+  position: "right" | "left" | "center" | "top-left" | "top-right" | "inline";
   children: React.ReactNode;
 }
 export const RoundButton: React.FC<RoundButton> = ({
@@ -10,16 +10,19 @@ export const RoundButton: React.FC<RoundButton> = ({
   let buttonPosition: string = "";
   switch (position) {
     case "right":
-      buttonPosition = "absolute right-8";
+      buttonPosition = "absolute right-8 bottom-8 opacity-50";
       break;
     case "left":
-      buttonPosition = "absolute left-8";
+      buttonPosition = "absolute left-8 bottom-8 opacity-50";
       break;
-    case "top":
-      buttonPosition = "absolute left-8 top-0";
+    case "top-left":
+      buttonPosition = "absolute left-8 top-8  opacity-50";
+      break;
+    case "top-right":
+      buttonPosition = "absolute right-8 top-8 opacity-50";
       break;
     case "center":
-      buttonPosition = "absolute";
+      buttonPosition = "absolute bottom-8";
       break;
     case "inline":
       break;
@@ -28,7 +31,7 @@ export const RoundButton: React.FC<RoundButton> = ({
   return (
     <button
       {...props}
-      className={`bottom-8 w-12 h-12 rounded-full flex items-center justify-center border border-secondary ${buttonPosition} ${props.className}`}
+      className={`w-12 h-12 rounded-full flex items-center justify-center border border-secondary  transform active:scale-90 transition-transform duration-150 ${buttonPosition} ${props.className}`}
     >
       {children}
     </button>

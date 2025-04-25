@@ -26,7 +26,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
         className="h-full bg-contrast"
         style={{
           width: `${progressPercentage}%`,
-          transition: "width 0.5s ease-in-out",
+          transition: "width .5s ease-in-out",
         }}
       ></div>
     </div>

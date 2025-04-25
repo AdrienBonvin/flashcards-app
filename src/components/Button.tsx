@@ -38,7 +38,7 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <button
       {...props}
-      className={`py-3 px-6 rounded-lg disabled:border disabled:border-gray-400 disabled:text-gray-400 disabled:bg-transparent ${backgroundColor} ${additionnalClassName}`}
+      className={`py-3 px-6 rounded-lg disabled:border disabled:border-gray-400 disabled:text-gray-400 disabled:bg-transparent  transform active:scale-90 transition-transform duration-150 ${backgroundColor} ${additionnalClassName}`}
     >
       {children}
     </button>
