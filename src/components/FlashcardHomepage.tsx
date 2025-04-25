@@ -1,9 +1,9 @@
 import PostAdd from "@mui/icons-material/PostAdd";
 import { Icon } from "./icons/Icon";
 import { RoundButton } from "./RoundButton";
-import Celebration from "@mui/icons-material/Celebration";
 import { TextCounter } from "./TextCounter";
 import { DeleteForever, TouchApp, ViewCarousel } from "@mui/icons-material";
+import Favorite from "@mui/icons-material/Favorite";
 
 interface FlashcardHomepageProps {
   numberOfCards: number;
@@ -56,11 +56,13 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
         </p>
       ) : (
         <>
-          <p className="w-3/4 text-center font-extrabold">
-            Il ne reste aucune carte à réviser aujourd'hui, tu as mérité un café
-            !
+          <p className="w-3/4 text-center font-bold text-gray-400">
+            Il ne reste aucune carte à réviser aujourd'hui, reviens demain !
           </p>
-          <Celebration />
+          <div className="flex flex-col items-center gap-2">
+            <Favorite className="text-contrast" />
+            <img src="/icons/logo.png" className="w-20" />
+          </div>
         </>
       )}
       <RoundButton

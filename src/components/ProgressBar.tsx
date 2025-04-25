@@ -23,7 +23,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
       className={`h-2 bg-gray-300 rounded-full overflow-hidden ${className}`}
     >
       <div
-        className="h-full bg-contrast"
+        className="h-full bg-gradient-to-r from-contrast  to-primary"
         style={{
           width: `${progressPercentage}%`,
           transition: "width .5s ease-in-out",

@@ -37,6 +37,17 @@ const FlashcardPage: React.FC = () => {
   const [isFlashcardRemoverOpened, setIsFlashcardRemoverOpened] =
     useState<boolean>(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
+
+  useEffect(() => {
+    if (isFlashcardReviewOpened && flashcardsToReview.length === 0) {
+      setIsFinished(true);
+      setTimeout(() => {
+        setIsFinished(false);
+        navigate(-1);
+      }, 3500);
+    }
+  }, [flashcardsToReview, isFlashcardReviewOpened]);
 
   useEffect(() => {
     if (!isFlashcardReviewOpened) return;
@@ -71,8 +82,8 @@ const FlashcardPage: React.FC = () => {
       const docRef = await addDoc(
         collection(db, `decks/${deckId}/flashcards`),
         {
-          question: newQuestion,
-          answer: newAnswer,
+          question: newQuestion.trim(),
+          answer: newAnswer.trim(),
           reviewDate: new Date(),
           reviewCount: 0,
         }
@@ -95,8 +106,8 @@ const FlashcardPage: React.FC = () => {
 
   const updateFlashcard = async (editedFlashcard: Flashcard) => {
     await updateDoc(doc(db, `decks/${deckId}/flashcards`, editedFlashcard.id), {
-      question: editedFlashcard.question,
-      answer: editedFlashcard.answer,
+      question: editedFlashcard.question.trim(),
+      answer: editedFlashcard.answer.trim(),
     });
     setDeck((prevDeck) => {
       return {
@@ -170,24 +181,34 @@ const FlashcardPage: React.FC = () => {
     <>
       {isDataLoaded ? (
         <div className="flex flex-col w-screen h-screen items-center justify-center gap-y-12">
-          {!(
-            isFlashcardReviewOpened ||
-            isFlashcardAdderOpened ||
-            isFlashcardRemoverOpened
-          ) && (
-            <FlashcardHomepage
-              numberOfCards={flashcardsToReview.length}
-              totalCards={deck.flashcards.length}
-              deckName={deck.name}
-              setIsFlashcardReviewOpened={setIsFlashcardReviewOpened}
-              setIsFlashcardAdderOpened={setIsFlashcardAdderOpened}
-              setIsFlashcardRemoverOpened={setIsFlashcardRemoverOpened}
-              removeDeck={() => {
-                removeDeck(deckId ?? "");
-                navigate(-1);
-              }}
-            />
+          {isFinished && (
+            <div className="flex flex-col items-center justify-center">
+              <img src="/icons/logo.png" className="w-24 h-24 animate-bounce" />
+              <p className="text-xl font-bold text-center text-transparent bg-gradient-to-r from-contrast  to-primary  bg-clip-text mt-4">
+                <p>Brain</p>
+                <p>LEVEL UP !</p>
+              </p>
+            </div>
           )}
+          {!isFinished &&
+            !(
+              isFlashcardReviewOpened ||
+              isFlashcardAdderOpened ||
+              isFlashcardRemoverOpened
+            ) && (
+              <FlashcardHomepage
+                numberOfCards={flashcardsToReview.length}
+                totalCards={deck.flashcards.length}
+                deckName={deck.name}
+                setIsFlashcardReviewOpened={setIsFlashcardReviewOpened}
+                setIsFlashcardAdderOpened={setIsFlashcardAdderOpened}
+                setIsFlashcardRemoverOpened={setIsFlashcardRemoverOpened}
+                removeDeck={() => {
+                  removeDeck(deckId ?? "");
+                  navigate(-1);
+                }}
+              />
+            )}
 
           {isFlashcardReviewOpened && currentFlashcard && (
             <>
