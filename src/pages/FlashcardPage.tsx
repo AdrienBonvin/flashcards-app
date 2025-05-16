@@ -38,6 +38,9 @@ const FlashcardPage: React.FC = () => {
     useState<boolean>(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  useEffect(() => {
+    console.log("FlashcardPage to review:", flashcardsToReview);
+  }, [flashcardsToReview]);
 
   useEffect(() => {
     if (isFlashcardReviewOpened && flashcardsToReview.length === 0) {
@@ -47,7 +50,7 @@ const FlashcardPage: React.FC = () => {
         navigate(-1);
       }, 3500);
     }
-  }, [flashcardsToReview, isFlashcardReviewOpened]);
+  }, [flashcardsToReview, isFlashcardReviewOpened, navigate]);
 
   useEffect(() => {
     if (!isFlashcardReviewOpened) return;
@@ -66,6 +69,9 @@ const FlashcardPage: React.FC = () => {
   useEffect(() => {
     if (deck.id) {
       setIsDataLoaded(true);
+      console.log(
+        "on remet à jour les flashcards à réviser avec les flashcards totaux"
+      );
       setFlashcardsToReview(flashcardUtils.getReviewableCards(deck.flashcards));
       setIsDataLoaded(true);
     }
@@ -109,14 +115,11 @@ const FlashcardPage: React.FC = () => {
       question: editedFlashcard.question.trim(),
       answer: editedFlashcard.answer.trim(),
     });
-    setDeck((prevDeck) => {
-      return {
-        ...prevDeck,
-        flashcards: prevDeck.flashcards.map((flashcard) =>
-          flashcard.id === editedFlashcard.id ? editedFlashcard : flashcard
-        ),
-      };
-    });
+    setFlashcardsToReview((prevFlashcards) =>
+      prevFlashcards.map((flashcard) =>
+        flashcard.id === editedFlashcard.id ? editedFlashcard : flashcard
+      )
+    );
   };
 
   const removeFlashcard = async (flashcardId: string) => {
@@ -136,6 +139,9 @@ const FlashcardPage: React.FC = () => {
 
   const markAsReviewed = async (reviewedFlashcard: Flashcard) => {
     const nextReviewDate = getNextReviewDate(reviewedFlashcard.reviewCount + 1);
+    console.log(
+      "update de la date de la flashcard, et retrait de la liste flashcardToReview"
+    );
     await updateDoc(
       doc(db, `decks/${deckId}/flashcards`, reviewedFlashcard.id),
       {
