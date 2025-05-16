@@ -29,13 +29,13 @@ const FlipCard: React.FC<FlipCardProps> = ({
         }`}
       >
         <div className="absolute h-full w-full rounded-xl border flex items-center justify-center text-2xl p-4 [backface-visibility:hidden]">
-          <p className="text-center break-words w-full h-full overflow-auto">
+          <p className="text-center break-words w-full h-full overflow-auto whitespace-pre-line">
             {question}
           </p>
         </div>
 
         <div className="absolute h-full w-full rounded-xl border flex items-center justify-center p-4 text-center text-2xl text-slate-200 [transform:rotateY(180deg)] [backface-visibility:hidden]">
-          <p className="text-center break-words w-full h-full overflow-auto">
+          <p className="text-center break-words w-full h-full overflow-auto whitespace-pre-line">
             {answer}
           </p>
         </div>
