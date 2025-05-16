@@ -14,10 +14,15 @@ export const DeckAdder: React.FC<DeckAdderProps> = ({ onClick }) => {
         maxLength={11}
         value={newDeckName}
         onChange={(e) => setNewDeckName(e.target.value)}
-        placeholder="New Deck Name"
+        placeholder="Nom du deck"
+        className="w-72"
       />
-      <Button onClick={() => onClick(newDeckName)} variant="primary">
-        Ajouter Deck
+      <Button
+        onClick={() => onClick(newDeckName)}
+        variant="primary"
+        onTouchStart={(e) => e.preventDefault()}
+      >
+        Ajouter le Deck
       </Button>
     </>
   );

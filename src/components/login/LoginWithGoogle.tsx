@@ -1,15 +1,21 @@
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
 import { Button } from "../Button";
+import { LoginProps } from "./ProtectedRoute";
+import { useUserDataContext } from "../../contexts/UserDataContext";
 
-export const LoginWithGoogle: React.FC = () => {
+export const LoginWithGoogle: React.FC<LoginProps> = ({ isRegistering }) => {
+  const { setIsLoading } = useUserDataContext();
+
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
+      setIsLoading(true);
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      console.log("Logged in as:", user.displayName);
+      console.log("Connecté en tant que:", user.displayName);
     } catch (error) {
+      setIsLoading(false);
       console.error("Error logging in with Google:", error);
     }
   };
@@ -26,7 +32,7 @@ export const LoginWithGoogle: React.FC = () => {
         alt="Google Logo"
         className="w-5 h-5"
       />
-      Connexion
+      {isRegistering ? "Créer mon compte" : "Connexion"}
     </Button>
   );
 };

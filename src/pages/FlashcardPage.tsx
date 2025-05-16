@@ -222,7 +222,7 @@ const FlashcardPage: React.FC = () => {
                 flashcard={currentFlashcard}
                 markAsReviewed={markAsReviewed}
                 markAsFailed={markAsFailed}
-                setIsFlashcardReviewOpened={setIsFlashcardReviewOpened}
+                updateFalshcard={updateFlashcard}
               />
             </>
           )}

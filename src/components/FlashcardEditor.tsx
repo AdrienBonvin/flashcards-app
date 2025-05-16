@@ -5,6 +5,7 @@ import FlipCard from "./FlipCard";
 import Edit from "@mui/icons-material/Edit";
 import { useState } from "react";
 import Popin from "./Popin";
+import EditCard from "./EditCard";
 
 interface FlashcarEditorProps {
   flashcards: Flashcard[];
@@ -33,49 +34,11 @@ const FlashcardEditor: React.FC<FlashcarEditorProps> = ({
         <>
           {flashcardToEdit && (
             <Popin onClose={() => setFlashcardToEdit(null)}>
-              <div className="h-full w-full flex flex-col justify-between">
-                <p
-                  contentEditable
-                  suppressContentEditableWarning
-                  className="outline-none text-center overflow-y-auto break-words>"
-                  onBlur={(e) =>
-                    setFlashcardToEdit((prev) =>
-                      prev
-                        ? { ...prev, question: e.target.textContent || "" }
-                        : null
-                    )
-                  }
-                >
-                  {flashcardToEdit.question}
-                </p>
-                <p className="text-center text-gray-500">
-                  _____________________________
-                </p>
-                <p
-                  contentEditable
-                  suppressContentEditableWarning
-                  className="outline-none text-center overflow-y-auto break-words"
-                  onBlur={(e) =>
-                    setFlashcardToEdit((prev) =>
-                      prev
-                        ? { ...prev, answer: e.target.textContent || "" }
-                        : null
-                    )
-                  }
-                >
-                  {flashcardToEdit.answer}
-                </p>
-                <Button
-                  additionnalClassName="mt-4"
-                  onClick={() => {
-                    if (flashcardToEdit) updateFlashcard(flashcardToEdit);
-                    setFlashcardToEdit(null);
-                  }}
-                  variant={"primary"}
-                >
-                  Save
-                </Button>
-              </div>
+              <EditCard
+                flashcardToEdit={flashcardToEdit}
+                setFlashcardToEdit={setFlashcardToEdit}
+                updateFlashcard={updateFlashcard}
+              />
             </Popin>
           )}
           <p className=" text-center w-full font-bold">
@@ -83,20 +46,20 @@ const FlashcardEditor: React.FC<FlashcarEditorProps> = ({
             <b className="font-extrabold text-contrast">{flashcards.length}</b>
           </p>
 
-          <ul className="w-full h-full flex flex-col gap-4">
+          <ul className="w-full h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:py-10 lg:px-20 items-center gap-4">
             {flashcards.map((flashcard) => (
               <li
                 key={flashcard.id}
-                className="w-11/12 h-full flex gap-0 justify-center items-center"
+                className="w-11/12 h-full flex sm:flex-col lg:flex-col justify-center items-center"
               >
                 <div className="w-full h-full flex justify-center items-center">
                   <FlipCard
                     question={flashcard.question}
                     answer={flashcard.answer}
-                    className={"scale-75 h-[50vh]"}
+                    className={"scale-75 h-96 w-60"}
                   />
                 </div>
-                <div className="h-full flex flex-col justify-center items-center gap-4">
+                <div className="h-full flex flex-col sm:flex-row lg:flex-row sm:pb-8 lg:pb-8 justify-center items-center gap-4">
                   <div>
                     <Button
                       additionnalClassName="w-24 h-20"

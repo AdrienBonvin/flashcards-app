@@ -68,7 +68,9 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
       <RoundButton
         onClick={() => setIsFlashcardAdderOpened(true)}
         position="right"
-        className={totalCards === 0 ? "shadow-lg shadow-contrast" : ""}
+        className={
+          totalCards === 0 ? "shadow-md shadow-contrast animate-bounce" : ""
+        }
       >
         <PostAdd />
       </RoundButton>

@@ -23,13 +23,13 @@ export const FlashcardAdder: React.FC<FlashcardAdderProps> = ({
       <TextArea
         value={newQuestion}
         onChange={(e) => setNewQuestion(e.target.value)}
-        className="min-h-[10vh] min-w-[75vw] py-1 px-4"
-        placeholder="Nouvelle question..."
+        className="min-h-[15vh] min-w-[75vw] sm:min-w-[50vw] lg:min-w-[25vw] py-3 px-6"
+        placeholder="Nouvelle question ?"
       />
       <TextArea
         value={newAnswer}
         onChange={(e) => setNewAnswer(e.target.value)}
-        className="min-h-[15vh] min-w-[75vw] py-1 px-4"
+        className="min-h-[15vh] min-w-[75vw] sm:min-w-[50vw] lg:min-w-[25vw] py-3 px-6"
         placeholder="Réponse..."
       />
       <Button
@@ -39,6 +39,7 @@ export const FlashcardAdder: React.FC<FlashcardAdderProps> = ({
           setNewQuestion("");
           setNewAnswer("");
         }}
+        onTouchStart={(e) => e.preventDefault()}
         variant={"primary"}
       >
         Ajouter carte

@@ -27,6 +27,8 @@ interface UserDataContextProps {
   addDeck: (newDeckName: string) => Promise<void>;
   removeDeck: (deckId: string) => Promise<void>;
   loadData: () => void;
+  isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const UserDataContext = createContext<UserDataContextProps | undefined>(
@@ -39,6 +41,7 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
   const [decks, setDecks] = useState<Deck[] | null>(null);
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -50,6 +53,7 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
 
   const loadData = useCallback(() => {
     if (!user) return;
+    setIsLoading(true);
     setDecks(null);
     const fetchDecks = async () => {
       const q = query(collection(db, "decks"), where("userId", "==", user.uid));
@@ -75,6 +79,7 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
         })
       )) as Deck[];
       setDecks(decksData);
+      setIsLoading(false);
     };
     fetchDecks();
   }, [user]);
@@ -120,6 +125,8 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
         addDeck,
         removeDeck,
         loadData,
+        isLoading,
+        setIsLoading,
       }}
     >
       {children}

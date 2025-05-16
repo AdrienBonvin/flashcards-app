@@ -7,18 +7,25 @@ import { auth } from "../../firebaseConfig";
 import { Input } from "../Input";
 import { Button } from "../Button";
 import Email from "@mui/icons-material/Email";
+import PersonAdd from "@mui/icons-material/PersonAdd";
+import { LoginProps } from "./ProtectedRoute";
+import { useUserDataContext } from "../../contexts/UserDataContext";
 
-export const LoginWithEmail: React.FC = () => {
+export const LoginWithEmail: React.FC<LoginProps> = ({ isRegistering }) => {
+  const { setIsLoading } = useUserDataContext();
+
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [isRegistering, setIsRegistering] = useState<boolean>(false); // Toggle between login and register
 
   const handleLogin = async () => {
     try {
       setError(null);
+      setIsLoading(true);
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error: unknown) {
+      setIsLoading(false);
+
       if (error instanceof Error) {
         console.error("Error logging in:", error);
         setError(error.message);
@@ -63,7 +70,8 @@ export const LoginWithEmail: React.FC = () => {
       {error && <p className="text-red-500 text-sm">{error}</p>}
       {isRegistering ? (
         <Button variant="primary" outlineStyle onClick={handleRegister}>
-          Register
+          <PersonAdd className="pr-2" />
+          Créer mon compte
         </Button>
       ) : (
         <Button variant="primary" outlineStyle onClick={handleLogin}>
@@ -71,12 +79,6 @@ export const LoginWithEmail: React.FC = () => {
           Connexion
         </Button>
       )}
-      <p
-        className="text-blue-500 text-center"
-        onClick={() => setIsRegistering(!isRegistering)}
-      >
-        {isRegistering ? "J'ai déjà un compte." : "Créer un compte."}
-      </p>
     </div>
   );
 };
