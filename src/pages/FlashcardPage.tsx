@@ -18,6 +18,7 @@ import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import { useUserDataContext } from "../contexts/UserDataContext";
 import { ProgressBar } from "../components/ProgressBar";
 import FlashcardEditor from "../components/FlashcardEditor";
+import { EditDeckName } from "../components/EditDeckName";
 
 const FlashcardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -38,6 +39,8 @@ const FlashcardPage: React.FC = () => {
     useState<boolean>(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  const [isEditDeckNameOpen, setIsEditDeckNameOpen] = useState(false);
+
   useEffect(() => {
     console.log("FlashcardPage to review:", flashcardsToReview);
   }, [flashcardsToReview]);
@@ -213,6 +216,7 @@ const FlashcardPage: React.FC = () => {
                   removeDeck(deckId ?? "");
                   navigate(-1);
                 }}
+                editDeckName={() => setIsEditDeckNameOpen(true)}
               />
             )}
 
@@ -250,6 +254,18 @@ const FlashcardPage: React.FC = () => {
           </RoundButton>
         </div>
       ) : null}
+      {isEditDeckNameOpen && (
+        <EditDeckName
+          initialDeckName={deck.name}
+          onEdit={(newName: string | null) => {
+            if (newName) {
+              updateDoc(doc(db, "decks", deck.id), { name: newName });
+              setDeck((prevDeck) => ({ ...prevDeck, name: newName }));
+            }
+            setIsEditDeckNameOpen(false);
+          }}
+        />
+      )}
     </>
   );
 };

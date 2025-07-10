@@ -24,11 +24,11 @@ const FlashcardEditor: React.FC<FlashcarEditorProps> = ({
   return (
     <div className="w-full h-full overflow-y-scroll">
       <h1 className="text-3xl font-extrabold mb-6 text-center pt-10">
-        Remove Flashcards
+        Gestion des cartes
       </h1>
       {flashcards.length === 0 ? (
         <div className="text-gray-500 text-center w-full">
-          No flashcards available to delete.
+          Vous n'avez encore aucune carte dans votre deck.
         </div>
       ) : (
         <>
@@ -42,11 +42,11 @@ const FlashcardEditor: React.FC<FlashcarEditorProps> = ({
             </Popin>
           )}
           <p className=" text-center w-full font-bold">
-            Total cards :
+            Nombre de cartes :{" "}
             <b className="font-extrabold text-contrast">{flashcards.length}</b>
           </p>
 
-          <ul className="w-full h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:py-10 lg:px-20 items-center gap-4">
+          <ul className="w-full h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:py-10 lg:px-20 items-center">
             {flashcards.map((flashcard) => (
               <li
                 key={flashcard.id}
@@ -56,7 +56,7 @@ const FlashcardEditor: React.FC<FlashcarEditorProps> = ({
                   <FlipCard
                     question={flashcard.question}
                     answer={flashcard.answer}
-                    className={"scale-75 h-96 w-60"}
+                    className={"scale-75 h-[25rem] w-60"}
                   />
                 </div>
                 <div className="h-full flex flex-col sm:flex-row lg:flex-row sm:pb-8 lg:pb-8 justify-center items-center gap-4">

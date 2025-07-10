@@ -15,6 +15,7 @@ import {
   doc,
   query,
   where,
+  updateDoc,
 } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import { User, onAuthStateChanged } from "firebase/auth";
@@ -26,6 +27,7 @@ interface UserDataContextProps {
   setSelectedDeck: React.Dispatch<React.SetStateAction<Deck | null>>;
   addDeck: (newDeckName: string) => Promise<void>;
   removeDeck: (deckId: string) => Promise<void>;
+  editDeckName: (deckId: string, newName: string) => Promise<void>;
   loadData: () => void;
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -115,6 +117,20 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const editDeckName = async (deckId: string, newName: string) => {
+    if (!user || !newName) return;
+
+    const deckRef = doc(db, "decks", deckId);
+    await updateDoc(deckRef, { name: newName });
+
+    setDecks(
+      (prevDecks) =>
+        prevDecks?.map((deck) =>
+          deck.id === deckId ? { ...deck, name: newName } : deck
+        ) || null
+    );
+  };
+
   return (
     <UserDataContext.Provider
       value={{
@@ -124,6 +140,7 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
         setSelectedDeck,
         addDeck,
         removeDeck,
+        editDeckName,
         loadData,
         isLoading,
         setIsLoading,

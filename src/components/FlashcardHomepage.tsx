@@ -2,8 +2,15 @@ import PostAdd from "@mui/icons-material/PostAdd";
 import { Icon } from "./icons/Icon";
 import { RoundButton } from "./RoundButton";
 import { TextCounter } from "./TextCounter";
-import { DeleteForever, TouchApp, ViewCarousel } from "@mui/icons-material";
+import DeleteForever from "@mui/icons-material/DeleteForever";
+import Menu from "@mui/icons-material/Menu";
+import TouchApp from "@mui/icons-material/TouchApp";
+import ViewCarousel from "@mui/icons-material/ViewCarousel";
+
 import Favorite from "@mui/icons-material/Favorite";
+import { RoundButtonMenu } from "./RoundButtonMenu";
+import DriveFileRenameOutline from "@mui/icons-material/DriveFileRenameOutline";
+import WebStories from "@mui/icons-material/WebStories";
 
 interface FlashcardHomepageProps {
   numberOfCards: number;
@@ -13,6 +20,7 @@ interface FlashcardHomepageProps {
   setIsFlashcardAdderOpened(isOpened: boolean): void;
   setIsFlashcardRemoverOpened(isOpened: boolean): void;
   removeDeck(): void;
+  editDeckName(): void;
 }
 
 export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
@@ -23,6 +31,7 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
   setIsFlashcardAdderOpened,
   setIsFlashcardRemoverOpened,
   removeDeck,
+  editDeckName,
 }) => {
   return (
     <>
@@ -37,7 +46,6 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
             counter={numberOfCards}
           />
           <RoundButton
-            position={"inline"}
             className="w-40 h-40 border-none"
             onClick={() => setIsFlashcardReviewOpened(true)}
           >
@@ -65,24 +73,37 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
           </div>
         </>
       )}
-      <RoundButton
-        onClick={() => setIsFlashcardAdderOpened(true)}
+      <RoundButtonMenu
+        mainIcon={<WebStories />}
         position="right"
-        className={
+        classNameClosed={
           totalCards === 0 ? "shadow-md shadow-contrast animate-bounce" : ""
         }
       >
-        <PostAdd />
-      </RoundButton>
-      <RoundButton
-        onClick={() => setIsFlashcardRemoverOpened(true)}
-        position="top-right"
-      >
-        <ViewCarousel />
-      </RoundButton>
-      <RoundButton onClick={removeDeck} position="top-left">
-        <DeleteForever />
-      </RoundButton>
+        <>
+          <RoundButton
+            onClick={() => setIsFlashcardAdderOpened(true)}
+            className={
+              totalCards === 0 ? "shadow-md shadow-contrast animate-bounce" : ""
+            }
+          >
+            <PostAdd />
+          </RoundButton>
+          <RoundButton onClick={() => setIsFlashcardRemoverOpened(true)}>
+            <ViewCarousel />
+          </RoundButton>
+        </>
+      </RoundButtonMenu>
+      <RoundButtonMenu mainIcon={<Menu />} position="top-right">
+        <>
+          <RoundButton onClick={editDeckName}>
+            <DriveFileRenameOutline />
+          </RoundButton>
+          <RoundButton onClick={removeDeck}>
+            <DeleteForever />
+          </RoundButton>
+        </>
+      </RoundButtonMenu>
     </>
   );
 };

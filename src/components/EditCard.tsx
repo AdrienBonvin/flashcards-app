@@ -19,7 +19,7 @@ const EditCard: React.FC<EditCardProps> = ({
         <p
           contentEditable
           suppressContentEditableWarning
-          className="outline-none text-center overflow-y-auto break-words text-xl w-full"
+          className="outline-none text-center overflow-y-auto break-words text-xl w-full whitespace-pre-line"
           onBlur={(e) =>
             setFlashcardToEdit((prev: Flashcard | null) =>
               prev
@@ -39,7 +39,7 @@ const EditCard: React.FC<EditCardProps> = ({
         <p
           contentEditable
           suppressContentEditableWarning
-          className="outline-none text-center overflow-y-auto break-words text-xl w-full"
+          className="outline-none text-center overflow-y-auto break-words text-xl w-full whitespace-pre-line"
           onBlur={(e) =>
             setFlashcardToEdit((prev: Flashcard | null) =>
               prev ? { ...prev, answer: e.target.textContent || "" } : null
