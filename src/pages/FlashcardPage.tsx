@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { db } from "../firebaseConfig";
 import {
   collection,
@@ -8,7 +8,10 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { Deck, Flashcard, flashcardUtils } from "../types";
-import { getNextReviewDate } from "../utils/spacedRepetition";
+import {
+  getDaysTillNextReview,
+  getNextReviewDate,
+} from "../utils/spacedRepetition";
 import { useNavigate, useParams } from "react-router-dom";
 import { FlashcardReviewer } from "../components/FlashcardReviewer";
 import { FlashcardAdder } from "../components/FlashcardAdder";
@@ -40,30 +43,35 @@ const FlashcardPage: React.FC = () => {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [isEditDeckNameOpen, setIsEditDeckNameOpen] = useState(false);
+  const [triggerProgressBarAnimations, setTriggerProgressBarAnimations] =
+    useState(false);
+  const [fadeProgressBarToBlackAnimation, setFadeProgressBarToBlackAnimation] =
+    useState(false);
+  const [triggerFloatingNumberAnimation, setTriggerFloatingNumberAnimation] =
+    useState<{
+      success: boolean;
+      start: { x: number; y: number };
+      end: { x: number; y: number };
+      daysLeft?: number;
+    } | null>(null);
+
+  const successButton = useRef<HTMLButtonElement>(null);
+  const failedButton = useRef<HTMLButtonElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log("FlashcardPage to review:", flashcardsToReview);
-  }, [flashcardsToReview]);
-
-  useEffect(() => {
-    if (isFlashcardReviewOpened && flashcardsToReview.length === 0) {
+    if (!isFlashcardReviewOpened) return;
+    if (flashcardsToReview.length === 0) {
       setIsFinished(true);
       setTimeout(() => {
         setIsFinished(false);
         navigate(-1);
       }, 3500);
-    }
-  }, [flashcardsToReview, isFlashcardReviewOpened, navigate]);
-
-  useEffect(() => {
-    if (!isFlashcardReviewOpened) return;
-
-    if (!flashcardsToReview.length) {
       setIsFlashcardReviewOpened(false);
     } else {
       setCurrentFlashcard(flashcardsToReview[0]);
     }
-  }, [flashcardsToReview, isFlashcardReviewOpened]);
+  }, [flashcardsToReview, isFlashcardReviewOpened, navigate]);
 
   useEffect(() => {
     setDeck(decks?.find((deck) => deck.id === deckId) ?? ({} as Deck));
@@ -72,9 +80,6 @@ const FlashcardPage: React.FC = () => {
   useEffect(() => {
     if (deck.id) {
       setIsDataLoaded(true);
-      console.log(
-        "on remet à jour les flashcards à réviser avec les flashcards totaux"
-      );
       setFlashcardsToReview(flashcardUtils.getReviewableCards(deck.flashcards));
       setIsDataLoaded(true);
     }
@@ -107,6 +112,7 @@ const FlashcardPage: React.FC = () => {
             answer: newAnswer,
             reviewDate: new Date(),
             reviewCount: 0,
+            archived: false,
           },
         ],
       }));
@@ -140,17 +146,57 @@ const FlashcardPage: React.FC = () => {
     );
   };
 
+  const triggerAnimations = (
+    animationType: "SUCCESS" | "FAILED",
+    reviewCount: number
+  ) => {
+    const triggeringButton =
+      animationType === "SUCCESS"
+        ? successButton.current
+        : failedButton.current;
+
+    const reviewCountIncrement =
+      animationType === "SUCCESS" ? reviewCount + 1 : reviewCount - 1;
+    if (triggeringButton && progressBarRef.current) {
+      setTriggerFloatingNumberAnimation({
+        start: {
+          x:
+            triggeringButton.getBoundingClientRect().left +
+            triggeringButton.getBoundingClientRect().width / 2,
+          y:
+            triggeringButton.getBoundingClientRect().top +
+            triggeringButton.getBoundingClientRect().height / 2,
+        },
+        end: {
+          x:
+            progressBarRef.current.getBoundingClientRect().left +
+            progressBarRef.current.getBoundingClientRect().width,
+          y:
+            progressBarRef.current.getBoundingClientRect().top +
+            progressBarRef.current.getBoundingClientRect().height / 2,
+        },
+        daysLeft: getDaysTillNextReview(
+          getNextReviewDate(reviewCountIncrement).getTime()
+        ),
+        success: animationType === "SUCCESS",
+      });
+    }
+  };
+
   const markAsReviewed = async (reviewedFlashcard: Flashcard) => {
-    const nextReviewDate = getNextReviewDate(reviewedFlashcard.reviewCount + 1);
-    console.log(
-      "update de la date de la flashcard, et retrait de la liste flashcardToReview"
-    );
+    triggerAnimations("SUCCESS", reviewedFlashcard.reviewCount);
+    const updatedFlashcard =
+      reviewedFlashcard.reviewCount > 6
+        ? {
+            archived: true,
+          }
+        : {
+            reviewDate: getNextReviewDate(reviewedFlashcard.reviewCount + 1),
+            reviewCount: reviewedFlashcard.reviewCount + 1,
+          };
     await updateDoc(
       doc(db, `decks/${deckId}/flashcards`, reviewedFlashcard.id),
-      {
-        reviewDate: nextReviewDate,
-        reviewCount: reviewedFlashcard.reviewCount + 1,
-      }
+      updatedFlashcard
     );
     setFlashcardsToReview((prevFlashcards) => {
       return prevFlashcards.filter(
@@ -158,14 +204,14 @@ const FlashcardPage: React.FC = () => {
       );
     });
   };
-
-  const markAsFailed = async (failedFlashcardId: string) => {
-    await updateDoc(doc(db, `decks/${deckId}/flashcards`, failedFlashcardId), {
+  const markAsFailed = async (failedFlashcard: Flashcard) => {
+    triggerAnimations("FAILED", failedFlashcard.reviewCount);
+    await updateDoc(doc(db, `decks/${deckId}/flashcards`, failedFlashcard.id), {
       reviewDate: new Date(new Date().setDate(new Date().getDate() + 1)),
-      reviewCount: 0,
+      reviewCount: failedFlashcard.reviewCount - 1,
     });
     setFlashcardsToReview((prevFlashcards) =>
-      prevFlashcards.filter((flashcard) => flashcard.id !== failedFlashcardId)
+      prevFlashcards.filter((flashcard) => flashcard.id !== failedFlashcard.id)
     );
   };
 
@@ -190,6 +236,61 @@ const FlashcardPage: React.FC = () => {
     <>
       {isDataLoaded ? (
         <div className="flex flex-col w-screen h-screen items-center justify-center gap-y-12">
+          {(isFinished || isFlashcardReviewOpened) && (
+            <>
+              <ProgressBar
+                ref={progressBarRef}
+                initialCount={flashcardInitialCount}
+                counter={flashcardsToReview.length}
+                className={`w-5/6 fixed top-8 ${
+                  fadeProgressBarToBlackAnimation
+                    ? "fade-to-black opacity-0"
+                    : ""
+                }`}
+                triggerAnimations={triggerProgressBarAnimations}
+              />
+              {triggerFloatingNumberAnimation && (
+                <span
+                  className={`fixed text-6xl font-bold z-50 translate-y-44 ${
+                    triggerFloatingNumberAnimation.success
+                      ? "text-primary"
+                      : "text-contrast"
+                  }`}
+                  style={
+                    {
+                      left: triggerFloatingNumberAnimation.start.x,
+                      top: triggerFloatingNumberAnimation.start.y,
+                      transform: "translate(-50%, -50%)",
+                      animation: `float-to-bar 0.7s cubic-bezier(0,0,.2,1) forwards`,
+                      "--float-x": `${
+                        triggerFloatingNumberAnimation.end.x -
+                        triggerFloatingNumberAnimation.start.x
+                      }px`,
+                      "--float-y": `${
+                        triggerFloatingNumberAnimation.end.y -
+                        triggerFloatingNumberAnimation.start.y
+                      }px`,
+                    } as React.CSSProperties
+                  }
+                  onAnimationEnd={() => {
+                    setTriggerProgressBarAnimations(true);
+                    setTriggerFloatingNumberAnimation(null);
+                    setTimeout(
+                      () => setTriggerProgressBarAnimations(false),
+                      200
+                    );
+                    if (isFinished) {
+                      setFadeProgressBarToBlackAnimation(true);
+                    }
+                  }}
+                >
+                  {triggerFloatingNumberAnimation.success ? "+" : "-"}
+                  {triggerFloatingNumberAnimation.daysLeft}
+                  {" j"}
+                </span>
+              )}
+            </>
+          )}
           {isFinished && (
             <div className="flex flex-col items-center justify-center">
               <img src="/icons/logo.png" className="w-24 h-24 animate-bounce" />
@@ -222,17 +323,13 @@ const FlashcardPage: React.FC = () => {
 
           {isFlashcardReviewOpened && currentFlashcard && (
             <>
-              <ProgressBar
-                initialCount={flashcardInitialCount}
-                counter={flashcardsToReview.length}
-                className="w-5/6"
-              />
               <FlashcardReviewer
                 key={currentFlashcard.id}
                 flashcard={currentFlashcard}
                 markAsReviewed={markAsReviewed}
                 markAsFailed={markAsFailed}
                 updateFalshcard={updateFlashcard}
+                reviewButtonRefs={{ failedButton, successButton }}
               />
             </>
           )}

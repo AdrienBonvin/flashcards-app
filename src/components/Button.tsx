@@ -1,8 +1,11 @@
+import { Ref } from "react";
+
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant: "primary" | "secondary" | "highlight" | "contrast";
   outlineStyle?: boolean;
   additionnalClassName?: string;
   children: React.ReactNode;
+  ref?: Ref<HTMLButtonElement>;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -10,6 +13,7 @@ export const Button: React.FC<ButtonProps> = ({
   outlineStyle,
   additionnalClassName,
   children,
+  ref,
   ...props
 }) => {
   let backgroundColor = "";
@@ -38,6 +42,7 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <button
       {...props}
+      ref={ref}
       className={`py-3 px-6 rounded-lg disabled:border disabled:border-gray-400 disabled:text-gray-400 disabled:bg-transparent transform active:scale-90 transition-transform duration-150 ${backgroundColor} ${additionnalClassName}`}
     >
       {children}

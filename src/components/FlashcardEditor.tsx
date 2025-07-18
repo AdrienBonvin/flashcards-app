@@ -6,6 +6,7 @@ import Edit from "@mui/icons-material/Edit";
 import { useState } from "react";
 import Popin from "./Popin";
 import EditCard from "./EditCard";
+import { addFibonacci, getDaysTillNextReview } from "../utils/spacedRepetition";
 
 interface FlashcarEditorProps {
   flashcards: Flashcard[];
@@ -48,35 +49,51 @@ const FlashcardEditor: React.FC<FlashcarEditorProps> = ({
 
           <ul className="w-full h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:py-10 lg:px-20 items-center">
             {flashcards.map((flashcard) => (
-              <li
-                key={flashcard.id}
-                className="w-11/12 h-full flex sm:flex-col lg:flex-col justify-center items-center"
-              >
-                <div className="w-full h-full flex justify-center items-center">
-                  <FlipCard
-                    question={flashcard.question}
-                    answer={flashcard.answer}
-                    className={"scale-75 h-[25rem] w-60"}
-                  />
-                </div>
-                <div className="h-full flex flex-col sm:flex-row lg:flex-row sm:pb-8 lg:pb-8 justify-center items-center gap-4">
-                  <div>
-                    <Button
-                      additionnalClassName="w-24 h-20"
-                      onClick={() => setFlashcardToEdit(flashcard)}
-                      variant={"primary"}
-                    >
-                      <Edit fontSize="large" />
-                    </Button>
+              <li key={flashcard.id} className="">
+                <div className="grid col-1">
+                  <div className="w-full h-full flex sm:flex-col lg:flex-col justify-center items-center">
+                    <div className="w-full h-full flex justify-center items-center">
+                      <FlipCard
+                        question={flashcard.question}
+                        answer={flashcard.answer}
+                        className={"scale-75 h-[25rem] w-60"}
+                      />
+                    </div>
+
+                    <div className="w-7/12 h-full flex flex-col sm:flex-row lg:flex-row sm:pb-0 lg:pb-4 justify-center items-center gap-4">
+                      <div>
+                        <Button
+                          additionnalClassName="w-24 h-20"
+                          onClick={() => setFlashcardToEdit(flashcard)}
+                          variant={"primary"}
+                        >
+                          <Edit fontSize="large" />
+                        </Button>
+                      </div>
+                      <div>
+                        <Button
+                          additionnalClassName="w-24 h-20"
+                          onClick={() => removeFlashcard(flashcard.id)}
+                          variant={"contrast"}
+                        >
+                          <Delete fontSize="large" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Button
-                      additionnalClassName="w-24 h-20"
-                      onClick={() => removeFlashcard(flashcard.id)}
-                      variant={"contrast"}
-                    >
-                      <Delete fontSize="large" />
-                    </Button>
+                  <div className="w-full items-center text-center">
+                    {"Répétition actuelle : "}
+                    <b className="font-extrabold text-contrast">
+                      {addFibonacci(flashcard.reviewCount)}
+                    </b>
+                    {" jours"}
+                    <p>
+                      {"Prochaine apparition : "}
+                      <b className="font-extrabold text-contrast">
+                        {getDaysTillNextReview(flashcard.reviewDate.getTime())}
+                      </b>
+                      {" jours"}
+                    </p>
                   </div>
                 </div>
               </li>

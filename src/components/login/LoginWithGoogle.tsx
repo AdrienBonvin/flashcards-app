@@ -11,9 +11,7 @@ export const LoginWithGoogle: React.FC<LoginProps> = ({ isRegistering }) => {
     const provider = new GoogleAuthProvider();
     try {
       setIsLoading(true);
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      console.log("Connecté en tant que:", user.displayName);
+      await signInWithPopup(auth, provider);
     } catch (error) {
       setIsLoading(false);
       console.error("Error logging in with Google:", error);

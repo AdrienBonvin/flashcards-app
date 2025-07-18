@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Ref, useEffect, useState } from "react";
 import { Button } from "./Button";
 import { RoundButton } from "./RoundButton";
 import ThumbUp from "@mui/icons-material/ThumbUp";
@@ -13,8 +13,12 @@ import Popin from "./Popin";
 interface FlashcardReviewerProps {
   flashcard: Flashcard;
   markAsReviewed: (flashcard: Flashcard) => void;
-  markAsFailed: (id: string) => void;
+  markAsFailed: (flashcard: Flashcard) => void;
   updateFalshcard: (editedFlashcard: Flashcard) => Promise<void>;
+  reviewButtonRefs: {
+    successButton: Ref<HTMLButtonElement>;
+    failedButton: Ref<HTMLButtonElement>;
+  };
 }
 
 export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
@@ -22,11 +26,18 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
   markAsReviewed,
   markAsFailed,
   updateFalshcard,
+  reviewButtonRefs,
 }) => {
-  const [isAnswerVisible, setIsAnswerVisible] = useState(false);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [showButtons, setShowButtons] = useState(false);
   const [flashcardToEdit, setFlashcardToEdit] = useState<Flashcard | null>(
     null
   );
+  const lastCardReview = flashcard.reviewCount > 6;
+
+  useEffect(() => {
+    if (!showButtons && showAnswer) setShowButtons(true);
+  }, [showAnswer, showButtons]);
 
   return (
     <div className=" flex flex-col justify-start items-center h-5/6 w-5/6">
@@ -35,16 +46,20 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
           <FlipCard
             question={flashcard.question}
             answer={flashcard.answer}
-            onCardFlip={setIsAnswerVisible}
+            onCardFlip={setShowAnswer}
+            goldenCard={lastCardReview}
             className="md:w-1/3 lg:w-1/3"
           />
-          {isAnswerVisible ? (
+          {showButtons ? (
             <div className="flex flex-row justify-center align-middle items-center gap-3 w-full pt-6">
               <Button
+                ref={reviewButtonRefs.failedButton}
                 onClick={() => {
-                  markAsFailed(flashcard.id);
+                  markAsFailed(flashcard);
                 }}
-                additionnalClassName="w-32 h-24"
+                additionnalClassName={`w-32 h-24 ${
+                  lastCardReview ? "opacity-30  " : ""
+                }`}
                 variant={"contrast"}
               >
                 <ThumbDown
@@ -53,15 +68,20 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
                 />
               </Button>
               <Button
+                ref={reviewButtonRefs.successButton}
                 onClick={() => {
                   markAsReviewed(flashcard);
                 }}
-                additionnalClassName="w-32 h-24"
+                additionnalClassName={`w-32 h-24 ${
+                  lastCardReview ? "bg-yellow-600 animate-bounce" : ""
+                }`}
                 variant={"primary"}
               >
                 <ThumbUp
                   style={{ fill: "currentcolor", fontSize: "4rem" }}
-                  className="text-blue-100"
+                  className={`${
+                    lastCardReview ? "text-yellow-200" : "text-blue-100"
+                  }`}
                 />
               </Button>
             </div>

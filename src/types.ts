@@ -4,6 +4,7 @@ export interface Flashcard {
   answer: string;
   reviewDate: Date;
   reviewCount: number;
+  archived: boolean;
 }
 
 export interface Deck {
@@ -17,6 +18,7 @@ export const flashcardUtils = {
   getReviewableCards: (flashcards: Flashcard[]) =>
     flashcards.filter(
       (flashcard) =>
-        flashcard.reviewDate.getTime() < new Date().setHours(23, 59, 59, 0)
+        flashcard.reviewDate.getTime() < new Date().setHours(23, 59, 59, 0) &&
+        !flashcard.archived
     ) ?? [],
 };
