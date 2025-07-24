@@ -7,6 +7,7 @@ import { useState } from "react";
 import Popin from "./Popin";
 import EditCard from "./EditCard";
 import { addFibonacci, getDaysTillNextReview } from "../utils/spacedRepetition";
+import { Input } from "./Input";
 
 interface FlashcarEditorProps {
   flashcards: Flashcard[];
@@ -22,6 +23,7 @@ const FlashcardEditor: React.FC<FlashcarEditorProps> = ({
   const [flashcardToEdit, setFlashcardToEdit] = useState<Flashcard | null>(
     null
   );
+  const [searchbarContent, setSearchbarContent] = useState<string>("");
   return (
     <div className="w-full h-full overflow-y-scroll">
       <h1 className="text-3xl font-extrabold mb-6 text-center pt-10">
@@ -46,58 +48,78 @@ const FlashcardEditor: React.FC<FlashcarEditorProps> = ({
             Nombre de cartes :{" "}
             <b className="font-extrabold text-contrast">{flashcards.length}</b>
           </p>
+          <div className="flex justify-center items-center w-full h-24">
+            <Input
+              value={searchbarContent}
+              onChange={(e) => setSearchbarContent(e.target.value)}
+              placeholder="Rechercher par mot clef..."
+            />
+          </div>
 
           <ul className="w-full h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:py-10 lg:px-20 items-center">
-            {flashcards.map((flashcard) => (
-              <li key={flashcard.id} className="">
-                <div className="grid col-1">
-                  <div className="w-full h-full flex sm:flex-col lg:flex-col justify-center items-center">
-                    <div className="w-full h-full flex justify-center items-center">
-                      <FlipCard
-                        question={flashcard.question}
-                        answer={flashcard.answer}
-                        className={"scale-75 h-[25rem] w-60"}
-                      />
-                    </div>
+            {flashcards
+              .filter((flashcard) => {
+                return (
+                  flashcard.question
+                    .toLowerCase()
+                    .includes(searchbarContent.toLowerCase()) ||
+                  flashcard.answer
+                    .toLowerCase()
+                    .includes(searchbarContent.toLowerCase())
+                );
+              })
+              .map((flashcard) => (
+                <li key={flashcard.id} className="">
+                  <div className="grid col-1">
+                    <div className="w-full h-full flex sm:flex-col lg:flex-col justify-center items-center">
+                      <div className="w-full h-full flex justify-center items-center">
+                        <FlipCard
+                          question={flashcard.question}
+                          answer={flashcard.answer}
+                          className={"scale-75 h-[25rem] w-60"}
+                        />
+                      </div>
 
-                    <div className="w-7/12 h-full flex flex-col sm:flex-row lg:flex-row sm:pb-0 lg:pb-4 justify-center items-center gap-4">
-                      <div>
-                        <Button
-                          additionnalClassName="w-24 h-20"
-                          onClick={() => setFlashcardToEdit(flashcard)}
-                          variant={"primary"}
-                        >
-                          <Edit fontSize="large" />
-                        </Button>
-                      </div>
-                      <div>
-                        <Button
-                          additionnalClassName="w-24 h-20"
-                          onClick={() => removeFlashcard(flashcard.id)}
-                          variant={"contrast"}
-                        >
-                          <Delete fontSize="large" />
-                        </Button>
+                      <div className="w-7/12 h-full flex flex-col sm:flex-row lg:flex-row sm:pb-0 lg:pb-4 justify-center items-center gap-4">
+                        <div>
+                          <Button
+                            additionnalClassName="w-24 h-20"
+                            onClick={() => setFlashcardToEdit(flashcard)}
+                            variant={"primary"}
+                          >
+                            <Edit fontSize="large" />
+                          </Button>
+                        </div>
+                        <div>
+                          <Button
+                            additionnalClassName="w-24 h-20"
+                            onClick={() => removeFlashcard(flashcard.id)}
+                            variant={"contrast"}
+                          >
+                            <Delete fontSize="large" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="w-full items-center text-center">
-                    {"Répétition actuelle : "}
-                    <b className="font-extrabold text-contrast">
-                      {addFibonacci(flashcard.reviewCount)}
-                    </b>
-                    {" jours"}
-                    <p>
-                      {"Prochaine apparition : "}
+                    <div className="w-full items-center text-center">
+                      {"Répétition actuelle : "}
                       <b className="font-extrabold text-contrast">
-                        {getDaysTillNextReview(flashcard.reviewDate.getTime())}
+                        {addFibonacci(flashcard.reviewCount)}
                       </b>
                       {" jours"}
-                    </p>
+                      <p>
+                        {"Prochaine apparition : "}
+                        <b className="font-extrabold text-contrast">
+                          {getDaysTillNextReview(
+                            flashcard.reviewDate.getTime()
+                          )}
+                        </b>
+                        {" jours"}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </li>
-            ))}
+                </li>
+              ))}
           </ul>
         </>
       )}

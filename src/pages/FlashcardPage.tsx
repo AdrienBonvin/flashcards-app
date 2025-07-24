@@ -49,7 +49,7 @@ const FlashcardPage: React.FC = () => {
     useState(false);
   const [triggerFloatingNumberAnimation, setTriggerFloatingNumberAnimation] =
     useState<{
-      success: boolean;
+      success: "SUCCESS" | "FAILED" | "LEARNED";
       start: { x: number; y: number };
       end: { x: number; y: number };
       daysLeft?: number;
@@ -147,16 +147,14 @@ const FlashcardPage: React.FC = () => {
   };
 
   const triggerAnimations = (
-    animationType: "SUCCESS" | "FAILED",
+    animationType: "SUCCESS" | "FAILED" | "LEARNED",
     reviewCount: number
   ) => {
     const triggeringButton =
-      animationType === "SUCCESS"
-        ? successButton.current
-        : failedButton.current;
+      animationType !== "FAILED" ? successButton.current : failedButton.current;
 
     const reviewCountIncrement =
-      animationType === "SUCCESS" ? reviewCount + 1 : reviewCount - 1;
+      animationType !== "FAILED" ? reviewCount + 1 : reviewCount - 1;
     if (triggeringButton && progressBarRef.current) {
       setTriggerFloatingNumberAnimation({
         start: {
@@ -178,22 +176,26 @@ const FlashcardPage: React.FC = () => {
         daysLeft: getDaysTillNextReview(
           getNextReviewDate(reviewCountIncrement).getTime()
         ),
-        success: animationType === "SUCCESS",
+        success: animationType,
       });
     }
   };
 
   const markAsReviewed = async (reviewedFlashcard: Flashcard) => {
-    triggerAnimations("SUCCESS", reviewedFlashcard.reviewCount);
-    const updatedFlashcard =
-      reviewedFlashcard.reviewCount > 6
-        ? {
-            archived: true,
-          }
-        : {
-            reviewDate: getNextReviewDate(reviewedFlashcard.reviewCount + 1),
-            reviewCount: reviewedFlashcard.reviewCount + 1,
-          };
+    let updatedFlashcard = {};
+
+    if (reviewedFlashcard.reviewCount > 6) {
+      triggerAnimations("LEARNED", reviewedFlashcard.reviewCount);
+      updatedFlashcard = {
+        archived: true,
+      };
+    } else {
+      triggerAnimations("SUCCESS", reviewedFlashcard.reviewCount);
+      updatedFlashcard = {
+        reviewDate: getNextReviewDate(reviewedFlashcard.reviewCount + 1),
+        reviewCount: reviewedFlashcard.reviewCount + 1,
+      };
+    }
     await updateDoc(
       doc(db, `decks/${deckId}/flashcards`, reviewedFlashcard.id),
       updatedFlashcard
@@ -253,7 +255,7 @@ const FlashcardPage: React.FC = () => {
                 <span
                   className={`fixed text-6xl font-bold z-50 translate-y-44 ${
                     triggerFloatingNumberAnimation.success
-                      ? "text-primary"
+                      ? "text-yellow-500"
                       : "text-contrast"
                   }`}
                   style={
@@ -284,9 +286,14 @@ const FlashcardPage: React.FC = () => {
                     }
                   }}
                 >
-                  {triggerFloatingNumberAnimation.success ? "+" : "-"}
-                  {triggerFloatingNumberAnimation.daysLeft}
-                  {" j"}
+                  {triggerFloatingNumberAnimation.success === "LEARNED"
+                    ? "🧠"
+                    : `${
+                        triggerFloatingNumberAnimation.success === "SUCCESS"
+                          ? "+"
+                          : "-"
+                      }
+                  ${triggerFloatingNumberAnimation.daysLeft} j`}
                 </span>
               )}
             </>

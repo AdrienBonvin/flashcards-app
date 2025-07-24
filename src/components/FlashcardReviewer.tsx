@@ -40,7 +40,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
   }, [showAnswer, showButtons]);
 
   return (
-    <div className=" flex flex-col justify-start items-center h-5/6 w-5/6">
+    <div className="flex flex-col justify-start items-center h-5/6 w-5/6">
       {!flashcardToEdit && (
         <>
           <FlipCard
@@ -57,14 +57,15 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
                 onClick={() => {
                   markAsFailed(flashcard);
                 }}
-                additionnalClassName={`w-32 h-24 ${
-                  lastCardReview ? "opacity-30  " : ""
-                }`}
+                additionnalClassName="w-32 h-24"
                 variant={"contrast"}
+                outlineStyle={lastCardReview}
               >
                 <ThumbDown
                   style={{ fill: "currentcolor", fontSize: "4rem" }}
-                  className="text-orange-950"
+                  className={`${
+                    lastCardReview ? "text-yellow-200" : "text-orange-950"
+                  }`}
                 />
               </Button>
               <Button

@@ -49,10 +49,20 @@ const DeckPage: React.FC = () => {
             Bienvenue sur Spira 📎
           </h2>
           <p className="text-sm text-white mb-4 text-center">
-            L'app de flashcards pour apprendre vite et bien tout en minimisant
-            l'effort.
+            L'app de flashcards pour apprendre vite et efficacement en un
+            minimum d'effort.
           </p>
-
+          <img
+            src="/src/assets/goldenCardTransformation.png"
+            alt="Carte exemple"
+            className="w-44 shadow-lg"
+          />
+          <p>
+            Au bout d'un certain nombre de répétitions réussies, votre carte se
+            transformera en Golden Card. Si une Golden card est répondue avec
+            succès, l'information qu'elle contient est considérée acquise et
+            n'apparaitras plus.
+          </p>
           <ul className="list-none text-sm space-y-3 text-white">
             <li>
               🧬 <b className="text-secondary">Répétition Espacée</b> : révisez
@@ -68,9 +78,7 @@ const DeckPage: React.FC = () => {
               de distractions. Juste l'essentiel.
             </li>
           </ul>
-
           <div className="border-t border-gray-600 my-4 w-1/3" />
-
           <p className="text-sm text-white">
             ✨ <b className="text-secondary">Pourquoi Spira ?</b>
             <br />
@@ -84,11 +92,9 @@ const DeckPage: React.FC = () => {
             <span className="text-secondary font-semibold">Spira</span> vous
             accompagne.
           </p>
-
           <div className="border-t border-gray-600 my-4 w-1/3" />
-
           <p className="text-sm text-white">
-            💡 <b className="text-contrast">Créer une bonne flascard :</b>
+            💡 <b className="text-contrast">Créer une bonne flashcard :</b>
             <br />
             <ul className="list-none text-sm space-y-3 text-white pt-4">
               <li>
