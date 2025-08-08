@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Flashcard } from "../types";
 import { Button } from "./Button";
+import { TextArea } from "./TextArea";
 
 interface EditCardProps {
   flashcardToEdit: Flashcard;
@@ -13,45 +14,53 @@ const EditCard: React.FC<EditCardProps> = ({
   setFlashcardToEdit,
   updateFlashcard,
 }) => {
+  const questionRef = useRef<HTMLTextAreaElement>(null);
+  const answerRef = useRef<HTMLTextAreaElement>(null);
+
+  const autoResize = (ref: React.RefObject<HTMLTextAreaElement | null>) => {
+    if (ref.current) {
+      ref.current.style.height = "auto";
+      ref.current.style.height = ref.current.scrollHeight + "px";
+    }
+  };
+
   return (
     <div className="h-full w-full flex flex-col justify-between">
-      <div className=" h-full w-full items-center flex flex-col gap-12">
-        <p
-          contentEditable
-          suppressContentEditableWarning
-          className="outline-none text-center overflow-y-auto break-words text-xl w-full whitespace-pre-line"
-          onBlur={(e) =>
-            setFlashcardToEdit((prev: Flashcard | null) =>
-              prev
-                ? {
-                    ...prev,
-                    question: e.target.textContent || "",
-                  }
-                : null
+      <div className="h-[95%] w-full items-center flex flex-col gap-12">
+        <TextArea
+          className="text-center w-full break-words bg-background"
+          ref={questionRef}
+          onInput={() => {
+            if (questionRef) autoResize(questionRef);
+          }}
+          onChange={(e) =>
+            setFlashcardToEdit((prev) =>
+              prev ? { ...prev, question: e.target.value || "" } : null
             )
           }
         >
           {flashcardToEdit.question}
-        </p>
+        </TextArea>
         <p className="text-center text-gray-500">
           _____________________________
         </p>
-        <p
-          contentEditable
-          suppressContentEditableWarning
-          className="outline-none text-center overflow-y-auto break-words text-xl w-full whitespace-pre-line"
-          onBlur={(e) =>
-            setFlashcardToEdit((prev: Flashcard | null) =>
-              prev ? { ...prev, answer: e.target.textContent || "" } : null
+        <TextArea
+          className="text-center w-full break-words bg-background"
+          ref={answerRef}
+          onInput={() => autoResize(answerRef)}
+          onChange={(e) =>
+            setFlashcardToEdit((prev) =>
+              prev ? { ...prev, answer: e.target.value || "" } : null
             )
           }
         >
           {flashcardToEdit.answer}
-        </p>
+        </TextArea>
       </div>
       <Button
         additionnalClassName="mt-4"
         onClick={() => {
+          console.log("Saving flashcard:", flashcardToEdit);
           if (flashcardToEdit) updateFlashcard(flashcardToEdit);
           setFlashcardToEdit(null);
         }}

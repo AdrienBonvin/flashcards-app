@@ -8,6 +8,7 @@ import Popin from "./Popin";
 import EditCard from "./EditCard";
 import { addFibonacci, getDaysTillNextReview } from "../utils/spacedRepetition";
 import { Input } from "./Input";
+import SwapVert from "@mui/icons-material/SwapVert";
 
 interface FlashcarEditorProps {
   flashcards: Flashcard[];
@@ -24,6 +25,8 @@ const FlashcardEditor: React.FC<FlashcarEditorProps> = ({
     null
   );
   const [searchbarContent, setSearchbarContent] = useState<string>("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
   return (
     <div className="w-full h-full overflow-y-scroll">
       <h1 className="text-3xl font-extrabold mb-6 text-center pt-10">
@@ -48,12 +51,22 @@ const FlashcardEditor: React.FC<FlashcarEditorProps> = ({
             Nombre de cartes :{" "}
             <b className="font-extrabold text-contrast">{flashcards.length}</b>
           </p>
-          <div className="flex justify-center items-center w-full h-24">
+          <div className="flex justify-center items-center w-full h-12 mt-8 gap-4">
             <Input
               value={searchbarContent}
               onChange={(e) => setSearchbarContent(e.target.value)}
               placeholder="Rechercher par mot clef..."
+              className="h-12"
             />
+            <Button
+              additionnalClassName="h-12 w-12 "
+              onClick={() =>
+                setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
+              }
+              variant="contrast"
+            >
+              <SwapVert fontSize="large" />
+            </Button>
           </div>
 
           <ul className="w-full h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:py-10 lg:px-20 items-center">
@@ -68,6 +81,11 @@ const FlashcardEditor: React.FC<FlashcarEditorProps> = ({
                     .includes(searchbarContent.toLowerCase())
                 );
               })
+              .sort((a, b) =>
+                sortOrder === "asc"
+                  ? a.reviewCount - b.reviewCount
+                  : b.reviewCount - a.reviewCount
+              )
               .map((flashcard) => (
                 <li key={flashcard.id} className="">
                   <div className="grid col-1">

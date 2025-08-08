@@ -16,6 +16,7 @@ const FlipCard: React.FC<FlipCardProps> = ({
   className,
 }) => {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [goldShineAnimation, setGoldShineAnimation] = useState(goldenCard);
 
   const cardStyle = useMemo(
     () =>
@@ -37,8 +38,19 @@ const FlipCard: React.FC<FlipCardProps> = ({
     >
       <div
         className={`relative h-full w-full rounded-xl shadow-xl transition-all duration-500 [transform-style:preserve-3d]  ${
-          isFlipped ? "[transform:rotateY(180deg)]" : ""
-        }`}
+          isFlipped
+            ? "[transform:rotateY(180deg)]"
+            : `
+                ${goldShineAnimation ? "golden-shine" : ""}
+              }`
+        }  `}
+        onTransitionEnd={() => {
+          if (isFlipped) return;
+          if (goldenCard) setGoldShineAnimation(true);
+        }}
+        onAnimationEnd={() => {
+          if (goldenCard) setGoldShineAnimation(false);
+        }}
       >
         <div className={`${cardStyle} [backface-visibility:hidden]`}>
           <p className="text-center break-words w-full h-full overflow-auto whitespace-pre-line">

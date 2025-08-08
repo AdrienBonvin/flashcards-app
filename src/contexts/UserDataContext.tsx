@@ -61,25 +61,29 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
       const q = query(collection(db, "decks"), where("userId", "==", user.uid));
       const querySnapshot = await getDocs(q);
 
-      const decksData = (await Promise.all(
+      const decksData: Deck[] = await Promise.all(
         querySnapshot.docs.map(async (deck) => {
           const flashcardsSnapshot = await getDocs(
             collection(db, `decks/${deck.id}/flashcards`)
           );
-          const flashcards = flashcardsSnapshot.docs.map((flashcard) => ({
-            id: flashcard.id,
-            question: flashcard.data().question,
-            answer: flashcard.data().answer,
-            reviewDate: flashcard.data().reviewDate?.toDate(),
-            reviewCount: flashcard.data().reviewCount,
-          })) as Flashcard[];
+          const flashcards: Flashcard[] = flashcardsSnapshot.docs.map(
+            (flashcard) => ({
+              id: flashcard.id,
+              question: flashcard.data().question,
+              answer: flashcard.data().answer,
+              reviewDate: flashcard.data().reviewDate?.toDate(),
+              reviewCount: flashcard.data().reviewCount,
+              archived: flashcard.data().archived ?? false,
+            })
+          );
           return {
             id: deck.id,
-            ...deck.data(),
+            name: deck.data().name,
+            userId: deck.data().userId,
             flashcards,
           };
         })
-      )) as Deck[];
+      );
       setDecks(decksData);
       setIsLoading(false);
     };

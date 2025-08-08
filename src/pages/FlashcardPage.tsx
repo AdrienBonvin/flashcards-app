@@ -91,70 +91,13 @@ const FlashcardPage: React.FC = () => {
     }
   }, [flashcardsToReview]);
 
-  const addFlashcard = async (newQuestion: string, newAnswer: string) => {
-    if (newQuestion && newAnswer) {
-      const docRef = await addDoc(
-        collection(db, `decks/${deckId}/flashcards`),
-        {
-          question: newQuestion.trim(),
-          answer: newAnswer.trim(),
-          reviewDate: new Date(),
-          reviewCount: 0,
-        }
-      );
-      setDeck((prevDeck) => ({
-        ...prevDeck,
-        flashcards: [
-          ...prevDeck.flashcards,
-          {
-            id: docRef.id,
-            question: newQuestion,
-            answer: newAnswer,
-            reviewDate: new Date(),
-            reviewCount: 0,
-            archived: false,
-          },
-        ],
-      }));
-    }
-  };
-
-  const updateFlashcard = async (editedFlashcard: Flashcard) => {
-    await updateDoc(doc(db, `decks/${deckId}/flashcards`, editedFlashcard.id), {
-      question: editedFlashcard.question.trim(),
-      answer: editedFlashcard.answer.trim(),
-    });
-    setFlashcardsToReview((prevFlashcards) =>
-      prevFlashcards.map((flashcard) =>
-        flashcard.id === editedFlashcard.id ? editedFlashcard : flashcard
-      )
-    );
-  };
-
-  const removeFlashcard = async (flashcardId: string) => {
-    await deleteDoc(doc(db, `decks/${deckId}/flashcards`, flashcardId));
-    setDeck((prevDeck) => {
-      return {
-        ...prevDeck,
-        flashcards: prevDeck.flashcards.filter(
-          (flashcard) => flashcard.id !== flashcardId
-        ),
-      };
-    });
-    setFlashcardsToReview((prevFlashcards) =>
-      prevFlashcards.filter((flashcard) => flashcard.id !== flashcardId)
-    );
-  };
-
   const triggerAnimations = (
     animationType: "SUCCESS" | "FAILED" | "LEARNED",
     reviewCount: number
   ) => {
     const triggeringButton =
-      animationType !== "FAILED" ? successButton.current : failedButton.current;
+      animationType === "FAILED" ? failedButton.current : successButton.current;
 
-    const reviewCountIncrement =
-      animationType !== "FAILED" ? reviewCount + 1 : reviewCount - 1;
     if (triggeringButton && progressBarRef.current) {
       setTriggerFloatingNumberAnimation({
         start: {
@@ -174,47 +117,128 @@ const FlashcardPage: React.FC = () => {
             progressBarRef.current.getBoundingClientRect().height / 2,
         },
         daysLeft: getDaysTillNextReview(
-          getNextReviewDate(reviewCountIncrement).getTime()
+          getNextReviewDate(reviewCount).getTime()
         ),
         success: animationType,
       });
     }
   };
 
-  const markAsReviewed = async (reviewedFlashcard: Flashcard) => {
-    let updatedFlashcard = {};
+  const addFlashcard = async (newQuestion: string, newAnswer: string) => {
+    if (newQuestion && newAnswer) {
+      try {
+        const docRef = await addDoc(
+          collection(db, `decks/${deckId}/flashcards`),
+          {
+            question: newQuestion.trim(),
+            answer: newAnswer.trim(),
+            reviewDate: new Date(),
+            reviewCount: 0,
+          }
+        );
+        setDeck((prevDeck) => ({
+          ...prevDeck,
+          flashcards: [
+            ...prevDeck.flashcards,
+            {
+              id: docRef.id,
+              question: newQuestion,
+              answer: newAnswer,
+              reviewDate: new Date(),
+              reviewCount: 0,
+              archived: false,
+            },
+          ],
+        }));
+      } catch (error) {
+        console.error("Erreur durant l'ajout d'une carte:", error);
+      }
+    }
+  };
 
+  const updateFlashcard = async (editedFlashcard: Flashcard) => {
+    await updateDoc(doc(db, `decks/${deckId}/flashcards`, editedFlashcard.id), {
+      question: editedFlashcard.question.trim(),
+      answer: editedFlashcard.answer.trim(),
+    });
+    setFlashcardsToReview((prevFlashcards) =>
+      prevFlashcards.map((flashcard) =>
+        flashcard.id === editedFlashcard.id ? editedFlashcard : flashcard
+      )
+    );
+  };
+
+  const removeFlashcard = async (flashcardId: string) => {
+    try {
+      await deleteDoc(doc(db, `decks/${deckId}/flashcards`, flashcardId));
+      setDeck((prevDeck) => {
+        return {
+          ...prevDeck,
+          flashcards: prevDeck.flashcards.filter(
+            (flashcard) => flashcard.id !== flashcardId
+          ),
+        };
+      });
+
+      setFlashcardsToReview((prevFlashcards) =>
+        prevFlashcards.filter((flashcard) => flashcard.id !== flashcardId)
+      );
+    } catch (error) {
+      console.error("Erreur durant la suppression d'une carte:", error);
+    }
+  };
+
+  const reviewFlashcard = async (reviewedFlashcard: Flashcard) => {
+    let updatedFlashcard = {};
+    const newReviewCount = reviewedFlashcard.reviewCount + 1;
     if (reviewedFlashcard.reviewCount > 6) {
-      triggerAnimations("LEARNED", reviewedFlashcard.reviewCount);
+      triggerAnimations("LEARNED", newReviewCount);
       updatedFlashcard = {
         archived: true,
       };
     } else {
-      triggerAnimations("SUCCESS", reviewedFlashcard.reviewCount);
+      triggerAnimations("SUCCESS", newReviewCount);
       updatedFlashcard = {
-        reviewDate: getNextReviewDate(reviewedFlashcard.reviewCount + 1),
-        reviewCount: reviewedFlashcard.reviewCount + 1,
+        reviewDate: getNextReviewDate(newReviewCount),
+        reviewCount: newReviewCount,
       };
     }
-    await updateDoc(
-      doc(db, `decks/${deckId}/flashcards`, reviewedFlashcard.id),
-      updatedFlashcard
-    );
-    setFlashcardsToReview((prevFlashcards) => {
-      return prevFlashcards.filter(
-        (flashcard) => flashcard.id !== reviewedFlashcard.id
+    try {
+      await updateDoc(
+        doc(db, `decks/${deckId}/flashcards`, reviewedFlashcard.id),
+        updatedFlashcard
       );
-    });
+
+      setFlashcardsToReview((prevFlashcards) => {
+        return prevFlashcards.filter(
+          (flashcard) => flashcard.id !== reviewedFlashcard.id
+        );
+      });
+    } catch (error) {
+      console.error("Erreur durant l'update d'une carte:", error);
+    }
   };
-  const markAsFailed = async (failedFlashcard: Flashcard) => {
-    triggerAnimations("FAILED", failedFlashcard.reviewCount);
-    await updateDoc(doc(db, `decks/${deckId}/flashcards`, failedFlashcard.id), {
-      reviewDate: new Date(new Date().setDate(new Date().getDate() + 1)),
-      reviewCount: failedFlashcard.reviewCount - 1,
-    });
-    setFlashcardsToReview((prevFlashcards) =>
-      prevFlashcards.filter((flashcard) => flashcard.id !== failedFlashcard.id)
-    );
+
+  const failFlashcard = async (failedFlashcard: Flashcard) => {
+    const newReviewCount =
+      failedFlashcard.reviewCount > 0 ? failedFlashcard.reviewCount - 1 : 0;
+    try {
+      triggerAnimations("FAILED", newReviewCount);
+      await updateDoc(
+        doc(db, `decks/${deckId}/flashcards`, failedFlashcard.id),
+        {
+          reviewDate: new Date(new Date().setDate(new Date().getDate() + 1)),
+          reviewCount: newReviewCount,
+        }
+      );
+      setFlashcardsToReview((prevFlashcards) =>
+        prevFlashcards.filter(
+          (flashcard) => flashcard.id !== failedFlashcard.id
+        )
+      );
+    } catch (error) {
+      console.error("Erreur durant l'update d'une carte:", error);
+    }
   };
 
   const goBack = () => {
@@ -333,8 +357,8 @@ const FlashcardPage: React.FC = () => {
               <FlashcardReviewer
                 key={currentFlashcard.id}
                 flashcard={currentFlashcard}
-                markAsReviewed={markAsReviewed}
-                markAsFailed={markAsFailed}
+                markAsReviewed={reviewFlashcard}
+                markAsFailed={failFlashcard}
                 updateFalshcard={updateFlashcard}
                 reviewButtonRefs={{ failedButton, successButton }}
               />
