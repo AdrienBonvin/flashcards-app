@@ -14,7 +14,33 @@ Chrome blocks Firebase auth when the app runs on `http://localhost` (Local Netwo
    - **Authorized redirect URI:** `https://localhost:5173/__/auth/handler`
    - **Authorized JavaScript origin:** `https://localhost:5173` (optional)
 
-Commit and pull `.env.development` on all machines so the auth domain override is applied.
+---
+
+## Deploy to Firebase
+
+1. **Install Firebase CLI** (if needed):
+   ```bash
+   npm install -g firebase-tools
+   ```
+
+2. **Login** (if not already):
+   ```bash
+   firebase login
+   ```
+
+3. **Build and deploy**:
+   ```bash
+   npm run deploy
+   ```
+   Or manually:
+   ```bash
+   npm run build
+   firebase deploy
+   ```
+
+Your app will be live at:
+- `https://flashcards-app-7a630.web.app`
+- `https://flashcards-app-7a630.firebaseapp.com`
 
 ---
 

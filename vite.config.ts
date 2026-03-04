@@ -11,7 +11,6 @@ export default defineConfig({
     },
   },
   server: {
-    https: true,
     proxy: {
       '/__/auth': {
         target: 'https://flashcards-app-7a630.firebaseapp.com',
