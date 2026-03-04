@@ -1,3 +1,23 @@
+# Spira (Flashcards App)
+
+## Google Sign-In on localhost
+
+Chrome blocks Firebase auth when the app runs on `http://localhost` (Local Network Access policy). The fix:
+
+1. **Use HTTPS** – Dev server runs on `https://localhost:5173` (not `http`)
+2. **Trusted certificate (no "not secure" warning)** – Run once:
+   ```bash
+   brew install mkcert && mkcert -install
+   ```
+   This installs a local CA so Chrome trusts the dev server's certificate.
+3. **Configure Google Cloud** – In [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials), edit your OAuth Client ID and add:
+   - **Authorized redirect URI:** `https://localhost:5173/__/auth/handler`
+   - **Authorized JavaScript origin:** `https://localhost:5173` (optional)
+
+Commit and pull `.env.development` on all machines so the auth domain override is applied.
+
+---
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

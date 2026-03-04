@@ -2,9 +2,14 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
+// In dev, MUST use current host to avoid Chrome's "local address space" CORS block (firebaseapp.com iframe fails)
+const authDomain = import.meta.env.DEV
+  ? (typeof window !== "undefined" ? window.location.host : "localhost:5173")
+  : (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "flashcards-app-7a630.firebaseapp.com");
+
 const firebaseConfig = {
   apiKey: "AIzaSyAg8ijm7LY6m6rMzVQxVeAoTt_SynL8d88",
-  authDomain: "flashcards-app-7a630.firebaseapp.com",
+  authDomain,
   projectId: "flashcards-app-7a630",
   storageBucket: "flashcards-app-7a630.firebasestorage.app",
   messagingSenderId: "473899202329",
