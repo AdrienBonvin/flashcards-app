@@ -44,81 +44,38 @@ const DeckPage: React.FC = () => {
   return (
     <div className="relative flex flex-col items-center justify-center w-screen h-screen gap-[5vh]">
       {isInfosOpened && (
-        <Popin onClose={() => setIsInfosOpened(false)}>
-          <h2 className="text-lg font-bold text-center text-primary mb-2">
-            Bienvenue sur Spira 📎
-          </h2>
-          <p className="text-sm text-white mb-4 text-center">
-            L'app de flashcards pour apprendre vite et efficacement en un
-            minimum d'effort.
-          </p>
-          <img
-            src="/src/assets/goldenCardTransformation.png"
-            alt="Carte exemple"
-            className="w-44 shadow-lg"
-          />
-          <p>
-            Au bout d'un certain nombre de répétitions réussies, votre carte se
-            transformera en Golden Card. Si une Golden card est répondue avec
-            succès, l'information qu'elle contient est considérée acquise et
-            n'apparaitras plus.
-          </p>
-          <ul className="list-none text-sm space-y-3 text-white">
-            <li>
-              🧬 <b className="text-secondary">Répétition Espacée</b> : révisez
-              au bon moment avec l’algorithme{" "}
-              <span className="text-contrast font-medium">Fibonacci</span>.
-            </li>
-            <li>
-              🧠 <b className="text-secondary">Active Recall</b> : retenez mieux
-              en testant votre mémoire plutôt qu’en relisant.
-            </li>
-            <li>
-              🎯 <b className="text-secondary">Interface Minimaliste</b> : pas
-              de distractions. Juste l'essentiel.
-            </li>
-          </ul>
-          <div className="border-t border-gray-600 my-4 w-1/3" />
-          <p className="text-sm text-white">
-            ✨ <b className="text-secondary">Pourquoi Spira ?</b>
-            <br />
-            Une approche{" "}
-            <span className="text-contrast font-medium">scientifique</span> +
-            une interface
-            <span className="text-contrast font-medium"> claire</span> = un
-            apprentissage{" "}
-            <span className="text-contrast font-medium">efficace</span>.
-            Examens, apprentissage continu, sans prise de tête :{" "}
-            <span className="text-secondary font-semibold">Spira</span> vous
-            accompagne.
-          </p>
-          <div className="border-t border-gray-600 my-4 w-1/3" />
-          <p className="text-sm text-white">
-            💡 <b className="text-contrast">Créer une bonne flashcard :</b>
-            <br />
-            <ul className="list-none text-sm space-y-3 text-white pt-4">
-              <li>
-                🧬 <b className="text-secondary">Concis</b> : Mettre un{" "}
-                <span className="text-contrast font-medium">minimum</span> de
-                texte.
-              </li>
-              <li>
-                🧠{" "}
-                <b className="text-secondary">Pas plus d'une réponse / carte</b>{" "}
-                Si votre carte contient plusieurs points importants, créer{" "}
-                <span className="text-contrast font-medium">
-                  plusieurs cartes
-                </span>
-                .{" "}
-              </li>
-              <li>
-                🎯 <b className="text-secondary">Droit au but</b> : La réponse
-                ne doit pas être un paragraphe bien construit mais la réponse en{" "}
-                <span className="text-contrast font-medium">quelques mots</span>
-                .
-              </li>
-            </ul>
-          </p>
+        <Popin onClose={() => setIsInfosOpened(false)} title="Aide">
+          <div className="space-y-6 text-sm text-gray-300">
+            <div>
+              <h3 className="font-semibold text-primary mb-1">Golden Cards</h3>
+              <p>
+                Après plusieurs bonnes réponses, une carte devient dorée. Une Golden Card réussie = info acquise, elle disparaît des révisions.
+              </p>
+              <div className="w-full flex justify-center">
+              <img
+                src="/src/assets/goldenCardTransformation.png"
+                alt="Golden Card"
+                className="mt-2 w-64 rounded-lg"
+              /></div>
+            </div>
+            <div>
+              <h3 className="font-semibold text-primary mb-2">Les 3 piliers</h3>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-2 py-1 rounded bg-primary/20 text-secondary text-xs">Répétition espacée (Fibonacci)</span>
+                <span className="px-2 py-1 rounded bg-primary/20 text-secondary text-xs">Active Recall</span>
+                <span className="px-2 py-1 rounded bg-primary/20 text-secondary text-xs">Interface minimaliste</span>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-contrast mb-2">Conseils flashcard</h3>
+              <ul className="list-disc list-inside space-y-1 text-gray-400">
+                <li>Concis : minimum de texte</li>
+                <li>Une seule idée par carte</li>
+                <li>Réponse en quelques mots</li>
+              </ul>
+            </div>
+          </div>
         </Popin>
       )}
       <img src="/icons/logo.png" alt="Logo" className="w-40" />
