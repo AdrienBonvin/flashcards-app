@@ -30,25 +30,38 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
     <>
       <Loader loading={isLoading} />
       {!user ? (
-        <div className="bg-background p-16 w-screen flex flex-col items-center justify-center">
-          <h1 className="text-2xl font-extraboldfont-bold text-center mb-12">
-            {isRegistering ? "Nouveau compte" : "Connexion"}
-          </h1>
-          <div className="flex flex-col justify-center gap-4 sm:w-1/3 lg:w-1/3">
-            <LoginWithEmail
-              isRegistering={isRegistering}
-              setIsRegistering={setIsRegistering}
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-16">
+          <div className="w-full max-w-sm">
+            <img
+              src="/icons/logo.png"
+              alt="Spira"
+              className="w-20 h-20 mx-auto mb-8"
             />
-            <LoginWithGoogle
-              isRegistering={isRegistering}
-              setIsRegistering={setIsRegistering}
-            />
-            <p
-              className="text-blue-500 text-center"
-              onClick={() => setIsRegistering(!isRegistering)}
-            >
-              {isRegistering ? "J'ai déjà un compte." : "Créer un compte."}
-            </p>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-center mb-8 text-text-primary">
+              {isRegistering ? "Créer un compte" : "Connexion"}
+            </h1>
+            <div className="flex flex-col gap-4">
+              <LoginWithEmail
+                isRegistering={isRegistering}
+                setIsRegistering={setIsRegistering}
+              />
+              <div className="relative flex items-center gap-4 my-2">
+                <div className="flex-1 border-t border-surface-elevated" />
+                <span className="text-muted text-sm">ou</span>
+                <div className="flex-1 border-t border-surface-elevated" />
+              </div>
+              <LoginWithGoogle
+                isRegistering={isRegistering}
+                setIsRegistering={setIsRegistering}
+              />
+              <button
+                type="button"
+                onClick={() => setIsRegistering(!isRegistering)}
+                className="text-primary hover:text-primary-hover text-center text-sm font-medium py-2 transition-colors focus:outline-none focus-visible:underline"
+              >
+                {isRegistering ? "J'ai déjà un compte" : "Créer un compte"}
+              </button>
+            </div>
           </div>
         </div>
       ) : (

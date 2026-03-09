@@ -58,7 +58,7 @@ export const RoundButtonMenu: React.FC<RoundButtonMenuProps> = ({
       </RoundButton>
       {open && (
         <div
-          className={`absolute flex flex-col rounded-full gap-2 shadow-lg ${menuListPosition}`}
+          className={`absolute flex flex-col gap-2 p-2 rounded-2xl bg-surface border border-surface-elevated shadow-card-hover ${menuListPosition}`}
         >
           {children}
         </div>

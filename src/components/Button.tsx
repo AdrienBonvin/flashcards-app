@@ -8,6 +8,29 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   ref?: Ref<HTMLButtonElement>;
 }
 
+const variantStyles = {
+  primary: {
+    filled: "bg-primary hover:bg-primary-hover text-white border-primary",
+    outline:
+      "border-2 border-primary text-primary bg-transparent hover:bg-primary/10",
+  },
+  secondary: {
+    filled: "bg-secondary text-gray-900 border-secondary hover:bg-secondary-hover",
+    outline:
+      "border-2 border-secondary text-secondary bg-transparent hover:bg-secondary/10",
+  },
+  highlight: {
+    filled: "bg-highlight text-gray-900 border-highlight",
+    outline:
+      "border-2 border-highlight text-highlight bg-transparent hover:bg-highlight/10",
+  },
+  contrast: {
+    filled: "bg-contrast hover:bg-contrast-hover text-gray-900 border-contrast",
+    outline:
+      "border-2 border-contrast text-contrast bg-transparent hover:bg-contrast/10",
+  },
+};
+
 export const Button: React.FC<ButtonProps> = ({
   variant,
   outlineStyle,
@@ -16,34 +39,17 @@ export const Button: React.FC<ButtonProps> = ({
   ref,
   ...props
 }) => {
-  let backgroundColor = "";
-  switch (variant) {
-    case "primary":
-      backgroundColor = outlineStyle
-        ? "border border-primary border-2"
-        : "bg-primary";
-      break;
-    case "secondary":
-      backgroundColor = outlineStyle
-        ? "border border-secondary border-2"
-        : "bg-secondary";
-      break;
-    case "highlight":
-      backgroundColor = outlineStyle
-        ? "border border-highlight border-2"
-        : "bg-highlight";
-      break;
-    case "contrast":
-      backgroundColor = outlineStyle
-        ? "border border-contrast border-2"
-        : "bg-contrast";
-      break;
-  }
+  const baseStyles =
+    "flex justify-center items-center py-3 px-6 rounded-xl font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:border disabled:border-muted disabled:text-muted disabled:bg-transparent disabled:cursor-not-allowed disabled:active:scale-100";
+  const variantStyle = outlineStyle
+    ? variantStyles[variant].outline
+    : variantStyles[variant].filled;
+
   return (
     <button
       {...props}
       ref={ref}
-      className={`flex justify-center items-center py-3 px-6 rounded-lg disabled:border disabled:border-gray-400 disabled:text-gray-400 disabled:bg-transparent transform active:scale-90 transition-transform duration-150 ${backgroundColor} ${additionnalClassName}`}
+      className={`${baseStyles} ${variantStyle} ${additionnalClassName ?? ""}`}
     >
       {children}
     </button>

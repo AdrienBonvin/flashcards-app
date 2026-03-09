@@ -261,7 +261,7 @@ const FlashcardPage: React.FC = () => {
   return (
     <>
       {isDataLoaded ? (
-        <div className="flex flex-col w-screen h-screen items-center justify-center gap-y-12">
+        <div className="flex flex-col min-h-screen w-full items-center justify-center gap-y-10 px-6 py-16 md:py-24">
           {(isFinished || isFlashcardReviewOpened) && (
             <>
               <ProgressBar
@@ -323,12 +323,18 @@ const FlashcardPage: React.FC = () => {
             </>
           )}
           {isFinished && (
-            <div className="flex flex-col items-center justify-center">
-              <img src="/icons/logo.png" className="w-24 h-24 animate-bounce" />
-              <p className="text-xl font-bold text-center text-transparent bg-gradient-to-r from-contrast  to-primary  bg-clip-text mt-4">
-                <p>Brain</p>
-                <p>LEVEL UP !</p>
-              </p>
+            <div className="flex flex-col items-center justify-center gap-4 animate-modal-in">
+              <img
+                src="/icons/logo.png"
+                alt="Spira"
+                className="w-24 h-24 animate-bounce"
+              />
+              <div className="text-center">
+                <p className="text-2xl md:text-3xl font-extrabold text-transparent bg-gradient-to-r from-contrast to-primary bg-clip-text">
+                  Brain LEVEL UP !
+                </p>
+                <p className="text-muted text-sm mt-2">Toutes les cartes sont révisées</p>
+              </div>
             </div>
           )}
           {!isFinished &&

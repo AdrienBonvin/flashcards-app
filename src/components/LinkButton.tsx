@@ -7,6 +7,29 @@ interface LinkButtonProps extends LinkProps {
   children: React.ReactNode;
 }
 
+const variantStyles = {
+  primary: {
+    filled: "bg-primary hover:bg-primary-hover text-white border-primary",
+    outline:
+      "border-2 border-primary text-primary bg-transparent hover:bg-primary/10",
+  },
+  secondary: {
+    filled: "bg-secondary text-gray-900 border-secondary hover:bg-secondary-hover",
+    outline:
+      "border-2 border-secondary text-secondary bg-transparent hover:bg-secondary/10",
+  },
+  highlight: {
+    filled: "bg-highlight text-gray-900 border-highlight",
+    outline:
+      "border-2 border-highlight text-highlight bg-transparent hover:bg-highlight/10",
+  },
+  contrast: {
+    filled: "bg-contrast hover:bg-contrast-hover text-gray-900 border-contrast",
+    outline:
+      "border-2 border-contrast text-contrast bg-transparent hover:bg-contrast/10",
+  },
+};
+
 export const LinkButton: React.FC<LinkButtonProps> = ({
   variant,
   outlineStyle,
@@ -14,33 +37,16 @@ export const LinkButton: React.FC<LinkButtonProps> = ({
   children,
   ...props
 }) => {
-  let backgroundColor = "";
-  switch (variant) {
-    case "primary":
-      backgroundColor = outlineStyle
-        ? "border border-primary border-2"
-        : "bg-primary";
-      break;
-    case "secondary":
-      backgroundColor = outlineStyle
-        ? "border border-secondary border-2"
-        : "bg-secondary";
-      break;
-    case "highlight":
-      backgroundColor = outlineStyle
-        ? "border border-highlight border-2"
-        : "bg-highlight";
-      break;
-    case "contrast":
-      backgroundColor = outlineStyle
-        ? "border border-contrast border-2"
-        : "bg-contrast";
-      break;
-  }
+  const baseStyles =
+    "py-3 px-5 rounded-xl font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background block";
+  const variantStyle = outlineStyle
+    ? variantStyles[variant].outline
+    : variantStyles[variant].filled;
+
   return (
     <Link
       {...props}
-      className={`py-3 px-4 rounded-lg  ${backgroundColor} ${additionnalClassName}`}
+      className={`${baseStyles} ${variantStyle} ${additionnalClassName ?? ""}`}
     >
       {children}
     </Link>

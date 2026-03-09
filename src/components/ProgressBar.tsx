@@ -1,20 +1,14 @@
-import { Ref, useMemo, useRef } from "react";
+import { forwardRef, useMemo, useRef } from "react";
 
 interface ProgressBarProps {
   initialCount: number;
   counter: number;
   className: string;
   triggerAnimations: boolean;
-  ref: Ref<HTMLDivElement>;
 }
 
-export const ProgressBar: React.FC<ProgressBarProps> = ({
-  initialCount,
-  counter,
-  className,
-  triggerAnimations,
-  ref,
-}) => {
+export const ProgressBar = forwardRef<HTMLDivElement, ProgressBarProps>(
+  ({ initialCount, counter, className, triggerAnimations }, ref) => {
   const maxCount = useRef(initialCount);
 
   const progressPercentage = useMemo(
@@ -25,19 +19,20 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
 
   return (
     <div
-      className={`h-2 bg-gray-300 rounded-full overflow-hidden ${className}  ${
+      className={`h-2.5 bg-surface-elevated rounded-full overflow-hidden ${className} ${
         triggerAnimations ? "ping-progress" : ""
       }`}
     >
       <div
         ref={ref}
-        className={`h-full bg-gradient-to-r from-contrast to-primary ${
+        className={`h-full bg-gradient-to-r from-contrast to-primary rounded-full ${
           triggerAnimations ? "progress-bar-filling" : ""
-        } `}
+        }`}
         style={{
           width: `${progressPercentage}%`,
         }}
-      ></div>
+      />
     </div>
   );
-};
+  }
+);

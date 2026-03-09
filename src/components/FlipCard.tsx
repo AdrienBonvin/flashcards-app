@@ -20,12 +20,11 @@ const FlipCard: React.FC<FlipCardProps> = ({
 
   const cardStyle = useMemo(
     () =>
-      `${
-        goldenCard
-          ? "bg-gradient-to-br from-yellow-200 to-yellow-700  border-yellow-950"
-          : "bg-gradient-to-br from-white to-slate-200 border-slate-400"
-      } absolute h-full w-full rounded-xl border flex items-center justify-center text-2xl text-gray-900 font-semibold p-4`,
-    []
+      (goldenCard
+        ? "bg-gradient-to-br from-amber-200 via-yellow-400 to-amber-600 border-2 border-amber-700/50 shadow-lg"
+        : "bg-gradient-to-br from-slate-50 to-slate-200 border border-slate-300/80 shadow-card") +
+      " absolute h-full w-full rounded-xl flex items-center justify-center text-xl md:text-2xl text-gray-900 font-semibold p-4",
+    [goldenCard]
   );
 
   useEffect(() => {
@@ -35,6 +34,9 @@ const FlipCard: React.FC<FlipCardProps> = ({
     <div
       className={`h-[60vh] w-full [perspective:1000px] ${className}`}
       onClick={() => setIsFlipped((prev) => !prev)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && setIsFlipped((prev) => !prev)}
     >
       <div
         className={`relative h-full w-full rounded-xl shadow-xl transition-all duration-500 [transform-style:preserve-3d]  ${

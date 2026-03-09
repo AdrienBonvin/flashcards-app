@@ -28,8 +28,9 @@ const EditCard: React.FC<EditCardProps> = ({
     <div className="h-full w-full flex flex-col justify-between">
       <div className="h-[95%] w-full items-center flex flex-col gap-12">
         <TextArea
-          className="text-center w-full break-words bg-background"
+          className="text-center w-full break-words min-h-[80px]"
           ref={questionRef}
+          value={flashcardToEdit.question}
           onInput={() => {
             if (questionRef) autoResize(questionRef);
           }}
@@ -38,24 +39,19 @@ const EditCard: React.FC<EditCardProps> = ({
               prev ? { ...prev, question: e.target.value || "" } : null
             )
           }
-        >
-          {flashcardToEdit.question}
-        </TextArea>
-        <p className="text-center text-gray-500">
-          _____________________________
-        </p>
+        />
+        <div className="w-full h-px bg-surface-elevated" />
         <TextArea
-          className="text-center w-full break-words bg-background"
+          className="text-center w-full break-words min-h-[80px]"
           ref={answerRef}
+          value={flashcardToEdit.answer}
           onInput={() => autoResize(answerRef)}
           onChange={(e) =>
             setFlashcardToEdit((prev) =>
               prev ? { ...prev, answer: e.target.value || "" } : null
             )
           }
-        >
-          {flashcardToEdit.answer}
-        </TextArea>
+        />
       </div>
       <Button
         additionnalClassName="mt-4"

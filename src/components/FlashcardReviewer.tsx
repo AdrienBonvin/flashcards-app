@@ -54,43 +54,39 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
             <div className="flex flex-row justify-center align-middle items-center gap-3 w-full pt-6">
               <Button
                 ref={reviewButtonRefs.failedButton}
-                onClick={() => {
-                  markAsFailed(flashcard);
-                }}
-                additionnalClassName="w-32 h-24"
-                variant={"contrast"}
+                onClick={() => markAsFailed(flashcard)}
+                additionnalClassName="w-28 h-20 md:w-32 md:h-24 rounded-2xl"
+                variant="contrast"
                 outlineStyle={lastCardReview}
               >
                 <ThumbDown
-                  style={{ fill: "currentcolor", fontSize: "4rem" }}
-                  className={`${
-                    lastCardReview ? "text-yellow-200" : "text-orange-950"
+                  style={{ fill: "currentcolor", fontSize: "3rem" }}
+                  className={`md:text-5xl ${
+                    lastCardReview ? "text-amber-200" : "text-orange-950"
                   }`}
                 />
               </Button>
               <Button
                 ref={reviewButtonRefs.successButton}
-                onClick={() => {
-                  markAsReviewed(flashcard);
-                }}
-                additionnalClassName={`w-32 h-24 ${
-                  lastCardReview ? "bg-yellow-600 animate-bounce" : ""
+                onClick={() => markAsReviewed(flashcard)}
+                additionnalClassName={`w-28 h-20 md:w-32 md:h-24 rounded-2xl ${
+                  lastCardReview ? "animate-pulse" : ""
                 }`}
-                variant={"primary"}
+                variant="primary"
               >
                 <ThumbUp
-                  style={{ fill: "currentcolor", fontSize: "4rem" }}
-                  className={`${
-                    lastCardReview ? "text-yellow-200" : "text-blue-100"
+                  style={{ fill: "currentcolor", fontSize: "3rem" }}
+                  className={`md:text-5xl ${
+                    lastCardReview ? "text-amber-100" : "text-blue-50"
                   }`}
                 />
               </Button>
             </div>
           ) : (
-            <div className="flex justify-center items-center font-bold pt-12">
-              <div className="text-gray-600 text-center text-sm">
-                Réponse <TouchApp />
-              </div>
+            <div className="flex justify-center items-center pt-12">
+              <p className="text-muted text-sm font-medium flex items-center">
+                Touchez pour voir la réponse <TouchApp className="w-4 h-4" />
+              </p>
             </div>
           )}
         </>

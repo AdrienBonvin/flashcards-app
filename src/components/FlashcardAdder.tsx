@@ -14,22 +14,24 @@ export const FlashcardAdder: React.FC<FlashcardAdderProps> = ({
   const [newCardCounter, setNewCardCounter] = useState<number>(0);
 
   return (
-    <>
-      <p className="font-extrabold text-4xl">Ajouter une carte</p>
-      <p>
-        Carte ajoutées :
-        <b className="text-contrast font-bold pl-2">{newCardCounter}</b>
+    <div className="flex flex-col items-center gap-5 w-full max-w-lg">
+      <h2 className="text-2xl md:text-3xl font-extrabold text-text-primary">
+        Ajouter une carte
+      </h2>
+      <p className="text-muted text-sm">
+        Cartes ajoutées :{" "}
+        <span className="text-contrast font-bold">{newCardCounter}</span>
       </p>
       <TextArea
         value={newQuestion}
         onChange={(e) => setNewQuestion(e.target.value)}
-        className="min-h-[15vh] min-w-[75vw] sm:min-w-[50vw] lg:min-w-[25vw] py-3 px-6"
+        className="min-h-[12vh] min-w-full py-4 px-5"
         placeholder="Nouvelle question ?"
       />
       <TextArea
         value={newAnswer}
         onChange={(e) => setNewAnswer(e.target.value)}
-        className="min-h-[15vh] min-w-[75vw] sm:min-w-[50vw] lg:min-w-[25vw] py-3 px-6"
+        className="min-h-[12vh] min-w-full py-4 px-5"
         placeholder="Réponse..."
       />
       <Button
@@ -40,10 +42,11 @@ export const FlashcardAdder: React.FC<FlashcardAdderProps> = ({
           setNewAnswer("");
         }}
         onTouchStart={(e) => e.preventDefault()}
-        variant={"primary"}
+        variant="primary"
+        additionnalClassName="w-full"
       >
-        Ajouter carte
+        Ajouter la carte
       </Button>
-    </>
+    </div>
   );
 };

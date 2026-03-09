@@ -15,29 +15,21 @@ export const EditDeckName: React.FC<{
   };
 
   return (
-    <div className="absolute top-0 left-0 flex flex-col items-center align-center justify-center gap-12 w-screen h-screen bg-background bg-opacity-90">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 px-6 bg-background/95 backdrop-blur-sm">
+      <h2 className="text-xl font-bold text-text-primary">Modifier le deck</h2>
       <Input
         type="text"
         placeholder={initialDeckName}
         value={newDeckName}
         onChange={(e) => setNewDeckName(e.target.value)}
-        className="w-72"
+        className="w-full max-w-xs"
         maxLength={11}
       />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Button
-          onClick={handleEdit}
-          className="btn btn-primary"
-          variant={"primary"}
-        >
+      <div className="flex gap-4">
+        <Button onClick={handleEdit} variant="primary">
           Enregistrer
         </Button>
-        <Button
-          onClick={() => onEdit(null)}
-          className="btn btn-primary"
-          variant={"primary"}
-          outlineStyle
-        >
+        <Button onClick={() => onEdit(null)} variant="primary" outlineStyle>
           Annuler
         </Button>
       </div>
