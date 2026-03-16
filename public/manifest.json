@@ -453,15 +453,11 @@
   ],
   "screenshots": [
     {
-      "src": "/screenshots/screenshot.png",
-      "sizes": "540x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/screenshots/screenshot.png",
-      "sizes": "540x720",
-      "type": "image/png"
+      "src": "screenshots/screenshot.png",
+      "sizes": "1024x467",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Spira - flashcards"
     }
   ],
   "description": "Spira est une application de flashcards utilisant la suite de fibbonaci pour la répétition espacée.",
