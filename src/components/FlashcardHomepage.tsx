@@ -1,7 +1,5 @@
 import PostAdd from "@mui/icons-material/PostAdd";
-import { Icon } from "./icons/Icon";
 import { RoundButton } from "./RoundButton";
-import { TextCounter } from "./TextCounter";
 import DeleteForever from "@mui/icons-material/DeleteForever";
 import Menu from "@mui/icons-material/Menu";
 import TouchApp from "@mui/icons-material/TouchApp";
@@ -36,47 +34,62 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
   return (
     <>
       {numberOfCards > 0 ? (
-        <div className="flex flex-col items-center justify-center gap-6 md:gap-8 w-full">
-          <h1 className="text-3xl md:text-5xl font-extrabold text-center truncate max-w-full px-4">
+        <div className="flex flex-col items-center justify-center w-full max-w-lg mx-auto">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-center text-text-primary tracking-tight max-w-full px-4 mb-2">
             {deckName}
           </h1>
-          <TextCounter
-            text="Cartes aujourd'hui :"
-            classNameText="text-muted font-semibold"
-            counter={numberOfCards}
-          />
-          <RoundButton
-            className="w-32 h-32 md:w-40 md:h-40 border-2 border-primary/50 bg-primary/5 hover:bg-primary/10 hover:shadow-glow transition-all duration-300"
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-elevated/80 border border-surface-elevated mb-8 md:mb-10">
+            <span className="text-muted text-sm font-medium">Cartes à réviser</span>
+            <span className="text-contrast font-bold text-lg tabular-nums">{numberOfCards}</span>
+          </div>
+          <button
             onClick={() => setIsFlashcardReviewOpened(true)}
+            className="group p-3 flex items-center justify-center relative
+              hover:scale-110 active:scale-95
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:rounded-full
+              transition-transform duration-300 ease-smooth cursor-pointer"
+            aria-label="Démarrer la révision"
           >
-            <Icon
-              iconName="deck"
-              className="text-primary w-24 md:w-32 stroke-highlight stroke-2"
+            <div
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 md:w-28 h-24 md:h-28 -z-10 blur-xl opacity-70 group-hover:opacity-90 transition-opacity duration-300 rounded-full"
+              style={{
+                background: "linear-gradient(to right, rgba(0,156,202,0.8), rgba(240,151,45,0.8))",
+              }}
             />
-          </RoundButton>
-          <p className="text-muted text-sm font-medium flex items-center gap-2">
-            Cliquez sur le deck <TouchApp className="w-4 h-4" />
+            <img
+              src="/icons/logo.png"
+              alt="Démarrer la révision"
+              className="w-28 md:w-36 relative z-0"
+            />
+          </button>
+          <p className="mt-6 text-muted text-sm font-medium flex items-center gap-2">
+            Cliquez pour démarrer <TouchApp className="w-4 h-4 opacity-70" />
           </p>
         </div>
       ) : totalCards === 0 ? (
-        <div className="text-center px-4">
-          <p className="font-extrabold text-lg md:text-xl text-text-primary mb-2">
-            Ajoutez votre première carte !
-          </p>
-          <p className="text-muted text-sm">
-            Commencez à construire votre deck de révision
+        <div className="flex flex-col items-center text-center px-6 py-12 max-w-md mx-auto">
+          <div className="w-20 h-20 rounded-2xl bg-surface-elevated border border-surface-elevated flex items-center justify-center mb-6">
+            <PostAdd className="text-primary w-10 h-10" />
+          </div>
+          <h2 className="font-bold text-xl md:text-2xl text-text-primary mb-2">
+            Créez votre première carte
+          </h2>
+          <p className="text-muted text-sm leading-relaxed">
+            Commencez à construire votre deck de révision en ajoutant des cartes.
           </p>
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-4 text-center px-4">
-          <p className="font-bold text-text-secondary">
-            Il ne reste aucune carte à réviser aujourd'hui.
-          </p>
-          <p className="text-muted text-sm">Reviens demain pour continuer !</p>
-          <div className="flex flex-col items-center gap-3 pt-4">
-            <Favorite className="text-contrast w-12 h-12" />
-            <img src="/icons/logo.png" alt="Spira" className="w-16 md:w-20" />
+        <div className="flex flex-col items-center text-center px-6 py-12 max-w-md mx-auto">
+          <div className="w-20 h-20 rounded-2xl bg-surface-elevated/80 border border-primary/20 flex items-center justify-center mb-6">
+            <Favorite className="text-contrast w-10 h-10" />
           </div>
+          <h2 className="font-bold text-xl md:text-2xl text-text-primary mb-2">
+            Tout est à jour !
+          </h2>
+          <p className="text-muted text-sm leading-relaxed mb-6">
+            Il ne reste aucune carte à réviser aujourd'hui. Revenez demain pour continuer.
+          </p>
+          <img src="/icons/logo.png" alt="Spira" className="w-14 opacity-80" />
         </div>
       )}
       <RoundButtonMenu
