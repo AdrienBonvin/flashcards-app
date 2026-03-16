@@ -18,7 +18,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
-import { User, onAuthStateChanged } from "firebase/auth";
+import { User, onAuthStateChanged, getRedirectResult } from "firebase/auth";
 
 interface UserDataContextProps {
   decks: Deck[] | null;
@@ -44,6 +44,17 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Handle redirect result when returning from Google sign-in
+    getRedirectResult(auth)
+      .then(() => {
+        // Auth state will update via onAuthStateChanged
+      })
+      .catch((error) => {
+        console.error("Redirect sign-in error:", error);
+      });
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {

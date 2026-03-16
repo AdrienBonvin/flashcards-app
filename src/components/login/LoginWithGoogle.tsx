@@ -1,4 +1,4 @@
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
 import { Button } from "../Button";
 import { LoginProps } from "./ProtectedRoute";
@@ -11,7 +11,8 @@ export const LoginWithGoogle: React.FC<LoginProps> = ({ isRegistering }) => {
     const provider = new GoogleAuthProvider();
     try {
       setIsLoading(true);
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
+      // Page will redirect to Google, then back to app
     } catch (error) {
       setIsLoading(false);
       console.error("Error logging in with Google:", error);

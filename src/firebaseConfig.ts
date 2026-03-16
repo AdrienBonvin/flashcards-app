@@ -2,10 +2,14 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// In dev, MUST use current host to avoid Chrome's "local address space" CORS block (firebaseapp.com iframe fails)
-const authDomain = import.meta.env.DEV
-  ? (typeof window !== "undefined" ? window.location.host : "localhost:5173")
-  : (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "flashcards-app-7a630.firebaseapp.com");
+// Use current host so auth iframe loads from same origin - avoids Chrome's "local address space" CORS block
+// (Firebase iframe from firebaseapp.com fails in Chrome when parent is on web.app)
+const authDomain =
+  typeof window !== "undefined"
+    ? window.location.host
+    : import.meta.env.DEV
+      ? "localhost:5173"
+      : "flashcards-app-7a630.firebaseapp.com";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAg8ijm7LY6m6rMzVQxVeAoTt_SynL8d88",
