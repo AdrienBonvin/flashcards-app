@@ -39,8 +39,11 @@ export const LoginWithEmail: React.FC<LoginProps> = ({ isRegistering }) => {
   const handleRegister = async () => {
     try {
       setError(null);
-      createUserWithEmailAndPassword(auth, email, password);
+      setIsLoading(true);
+      await createUserWithEmailAndPassword(auth, email, password);
     } catch (error: unknown) {
+      setIsLoading(false);
+
       if (error instanceof Error) {
         console.error("Error registering user:", error);
         setError(error.message);

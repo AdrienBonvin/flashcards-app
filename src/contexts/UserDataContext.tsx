@@ -16,6 +16,7 @@ import {
   query,
   where,
   updateDoc,
+  Timestamp,
 } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import { User, onAuthStateChanged, getRedirectResult } from "firebase/auth";
@@ -28,6 +29,7 @@ interface UserDataContextProps {
   addDeck: (newDeckName: string) => Promise<void>;
   removeDeck: (deckId: string) => Promise<void>;
   editDeckName: (deckId: string, newName: string) => Promise<void>;
+  setDeckLastCompletedReviewAt: (deckId: string) => Promise<void>;
   loadData: () => void;
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -87,11 +89,13 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
               archived: flashcard.data().archived ?? false,
             })
           );
+          const lastCompletedReviewAt = deck.data().lastCompletedReviewAt?.toDate?.();
           return {
             id: deck.id,
             name: deck.data().name,
             userId: deck.data().userId,
             flashcards,
+            ...(lastCompletedReviewAt && { lastCompletedReviewAt }),
           };
         })
       );
@@ -125,6 +129,13 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
   const removeDeck = async (deckId: string) => {
     if (!decks) return;
     try {
+      // Supprime la sous-collection flashcards, sinon les docs restent orphelins dans Firestore
+      const flashcardsSnapshot = await getDocs(
+        collection(db, `decks/${deckId}/flashcards`)
+      );
+      await Promise.all(
+        flashcardsSnapshot.docs.map((flashcard) => deleteDoc(flashcard.ref))
+      );
       await deleteDoc(doc(collection(db, "decks"), deckId));
       setDecks(decks.filter((deck) => deck.id !== deckId));
     } catch (error) {
@@ -146,6 +157,20 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
     );
   };
 
+  const setDeckLastCompletedReviewAt = async (deckId: string) => {
+    const now = Timestamp.now();
+    const deckRef = doc(db, "decks", deckId);
+    await updateDoc(deckRef, { lastCompletedReviewAt: now });
+    setDecks(
+      (prevDecks) =>
+        prevDecks?.map((deck) =>
+          deck.id === deckId
+            ? { ...deck, lastCompletedReviewAt: now.toDate() }
+            : deck
+        ) || null
+    );
+  };
+
   return (
     <UserDataContext.Provider
       value={{
@@ -156,6 +181,7 @@ export const UserDataProvider: React.FC<{ children: ReactNode }> = ({
         addDeck,
         removeDeck,
         editDeckName,
+        setDeckLastCompletedReviewAt,
         loadData,
         isLoading,
         setIsLoading,

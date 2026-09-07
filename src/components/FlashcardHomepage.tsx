@@ -57,7 +57,7 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
               }}
             />
             <img
-              src="/icons/logo.png"
+              src="/icons/logo-512.png"
               alt="Démarrer la révision"
               className="w-28 md:w-36 relative z-0"
             />
@@ -89,7 +89,7 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
           <p className="text-muted text-sm leading-relaxed mb-6">
             Il ne reste aucune carte à réviser aujourd'hui. Revenez demain pour continuer.
           </p>
-          <img src="/icons/logo.png" alt="Spira" className="w-14 opacity-80" />
+          <img src="/icons/logo-512.png" alt="Spira" className="w-14 opacity-80" />
         </div>
       )}
       <RoundButtonMenu

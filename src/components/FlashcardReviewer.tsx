@@ -4,11 +4,11 @@ import { RoundButton } from "./RoundButton";
 import ThumbUp from "@mui/icons-material/ThumbUp";
 import ThumbDown from "@mui/icons-material/ThumbDown";
 import TouchApp from "@mui/icons-material/TouchApp";
+import Check from "@mui/icons-material/Check";
+import Close from "@mui/icons-material/Close";
 import { Flashcard } from "../types";
 import FlipCard from "./FlipCard";
-import EditCard from "./EditCard";
 import Edit from "@mui/icons-material/Edit";
-import Popin from "./Popin";
 
 interface FlashcardReviewerProps {
   flashcard: Flashcard;
@@ -30,18 +30,72 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
 }) => {
   const [showAnswer, setShowAnswer] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
-  const [flashcardToEdit, setFlashcardToEdit] = useState<Flashcard | null>(
-    null
-  );
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftText, setDraftText] = useState("");
   const lastCardReview = flashcard.reviewCount > 6;
+  // On n'édite que la face visible : réponse si la carte est retournée, question sinon
+  const editedField = showAnswer ? "answer" : "question";
 
   useEffect(() => {
     if (!showButtons && showAnswer) setShowButtons(true);
   }, [showAnswer, showButtons]);
 
+  const startEditing = () => {
+    setDraftText(flashcard[editedField]);
+    setIsEditing(true);
+  };
+
+  const saveEdit = async () => {
+    const text = draftText.trim();
+    if (text) {
+      await updateFalshcard({ ...flashcard, [editedField]: text });
+    }
+    setIsEditing(false);
+  };
+
+  const editableCardStyle = lastCardReview
+    ? "bg-gradient-to-br from-amber-200 via-yellow-400 to-amber-600 border-2 border-amber-700/50"
+    : "bg-gradient-to-br from-slate-50 to-slate-200 border border-slate-300/80";
+
+  const editableTextAreaStyle =
+    "flex-1 w-full bg-transparent text-center text-gray-900 text-xl md:text-2xl font-semibold resize-none focus:outline-none placeholder:text-gray-400";
+
   return (
     <div className="flex flex-col justify-start items-center h-5/6 w-5/6">
-      {!flashcardToEdit && (
+      {isEditing ? (
+        <>
+          {/* Édition en place : même gabarit que la FlipCard, seule la face visible est éditable */}
+          <div
+            className={`h-[60vh] w-full md:w-1/3 lg:w-1/3 rounded-xl shadow-xl p-4 flex flex-col ${editableCardStyle}`}
+          >
+            <textarea
+              value={draftText}
+              onChange={(e) => setDraftText(e.target.value)}
+              placeholder={showAnswer ? "Réponse" : "Question"}
+              className={editableTextAreaStyle}
+              autoFocus
+            />
+          </div>
+          <div className="flex flex-row justify-center items-center gap-3 w-full pt-6">
+            <Button
+              onClick={() => setIsEditing(false)}
+              additionnalClassName="w-28 h-20 md:w-32 md:h-24 rounded-2xl"
+              variant="contrast"
+              outlineStyle
+            >
+              <Close style={{ fontSize: "2rem" }} />
+            </Button>
+            <Button
+              onClick={saveEdit}
+              disabled={!draftText.trim()}
+              additionnalClassName="w-28 h-20 md:w-32 md:h-24 rounded-2xl"
+              variant="primary"
+            >
+              <Check style={{ fontSize: "2rem" }} />
+            </Button>
+          </div>
+        </>
+      ) : (
         <>
           <FlipCard
             question={flashcard.question}
@@ -89,23 +143,10 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
               </p>
             </div>
           )}
+          <RoundButton position="right" onClick={startEditing}>
+            <Edit />
+          </RoundButton>
         </>
-      )}
-      <RoundButton
-        position="right"
-        onClick={() => setFlashcardToEdit(flashcard)}
-      >
-        <Edit />
-      </RoundButton>
-
-      {flashcardToEdit && (
-        <Popin onClose={() => setFlashcardToEdit(null)}>
-          <EditCard
-            flashcardToEdit={flashcardToEdit}
-            setFlashcardToEdit={setFlashcardToEdit}
-            updateFlashcard={updateFalshcard}
-          />
-        </Popin>
       )}
     </div>
   );

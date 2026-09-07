@@ -33,7 +33,7 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
         <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-16">
           <div className="w-full max-w-sm">
             <img
-              src="/icons/logo.png"
+              src="/icons/logo-512.png"
               alt="Spira"
               className="w-20 h-20 mx-auto mb-8"
             />

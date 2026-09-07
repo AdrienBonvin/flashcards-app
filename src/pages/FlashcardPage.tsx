@@ -22,11 +22,13 @@ import { useUserDataContext } from "../contexts/UserDataContext";
 import { ProgressBar } from "../components/ProgressBar";
 import FlashcardEditor from "../components/FlashcardEditor";
 import { EditDeckName } from "../components/EditDeckName";
+import Popin from "../components/Popin";
+import { Button } from "../components/Button";
 
 const FlashcardPage: React.FC = () => {
   const navigate = useNavigate();
   const { deckId } = useParams<{ deckId: string }>();
-  const { decks, removeDeck } = useUserDataContext();
+  const { decks, removeDeck, setDeckLastCompletedReviewAt } = useUserDataContext();
 
   const [flashcardsToReview, setFlashcardsToReview] = useState<Flashcard[]>([]);
   const [deck, setDeck] = useState<Deck>({} as Deck);
@@ -43,6 +45,7 @@ const FlashcardPage: React.FC = () => {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [isEditDeckNameOpen, setIsEditDeckNameOpen] = useState(false);
+  const [isConfirmingDeckDelete, setIsConfirmingDeckDelete] = useState(false);
   const [triggerProgressBarAnimations, setTriggerProgressBarAnimations] =
     useState(false);
   const [fadeProgressBarToBlackAnimation, setFadeProgressBarToBlackAnimation] =
@@ -63,6 +66,8 @@ const FlashcardPage: React.FC = () => {
     if (!isFlashcardReviewOpened) return;
     if (flashcardsToReview.length === 0) {
       setIsFinished(true);
+      if (deckId && flashcardInitialCount > 0)
+        setDeckLastCompletedReviewAt(deckId).catch(console.error);
       setTimeout(() => {
         setIsFinished(false);
         navigate(-1);
@@ -71,7 +76,7 @@ const FlashcardPage: React.FC = () => {
     } else {
       setCurrentFlashcard(flashcardsToReview[0]);
     }
-  }, [flashcardsToReview, isFlashcardReviewOpened, navigate]);
+  }, [flashcardsToReview, isFlashcardReviewOpened, navigate, deckId, setDeckLastCompletedReviewAt, flashcardInitialCount]);
 
   useEffect(() => {
     setDeck(decks?.find((deck) => deck.id === deckId) ?? ({} as Deck));
@@ -166,6 +171,12 @@ const FlashcardPage: React.FC = () => {
         flashcard.id === editedFlashcard.id ? editedFlashcard : flashcard
       )
     );
+    setDeck((prevDeck) => ({
+      ...prevDeck,
+      flashcards: prevDeck.flashcards.map((flashcard) =>
+        flashcard.id === editedFlashcard.id ? editedFlashcard : flashcard
+      ),
+    }));
   };
 
   const removeFlashcard = async (flashcardId: string) => {
@@ -214,6 +225,15 @@ const FlashcardPage: React.FC = () => {
           (flashcard) => flashcard.id !== reviewedFlashcard.id
         );
       });
+      // Garde deck synchronisé : c'est la source dont l'effet [deck] dérive la file de révision
+      setDeck((prevDeck) => ({
+        ...prevDeck,
+        flashcards: prevDeck.flashcards.map((flashcard) =>
+          flashcard.id === reviewedFlashcard.id
+            ? { ...flashcard, ...updatedFlashcard }
+            : flashcard
+        ),
+      }));
     } catch (error) {
       console.error("Erreur durant l'update d'une carte:", error);
     }
@@ -224,18 +244,27 @@ const FlashcardPage: React.FC = () => {
       failedFlashcard.reviewCount > 0 ? failedFlashcard.reviewCount - 1 : 0;
     try {
       triggerAnimations("FAILED", newReviewCount);
+      const failedUpdate = {
+        reviewDate: new Date(new Date().setDate(new Date().getDate() + 1)),
+        reviewCount: newReviewCount,
+      };
       await updateDoc(
         doc(db, `decks/${deckId}/flashcards`, failedFlashcard.id),
-        {
-          reviewDate: new Date(new Date().setDate(new Date().getDate() + 1)),
-          reviewCount: newReviewCount,
-        }
+        failedUpdate
       );
       setFlashcardsToReview((prevFlashcards) =>
         prevFlashcards.filter(
           (flashcard) => flashcard.id !== failedFlashcard.id
         )
       );
+      setDeck((prevDeck) => ({
+        ...prevDeck,
+        flashcards: prevDeck.flashcards.map((flashcard) =>
+          flashcard.id === failedFlashcard.id
+            ? { ...flashcard, ...failedUpdate }
+            : flashcard
+        ),
+      }));
     } catch (error) {
       console.error("Erreur durant l'update d'une carte:", error);
     }
@@ -325,7 +354,7 @@ const FlashcardPage: React.FC = () => {
           {isFinished && (
             <div className="flex flex-col items-center justify-center gap-4 animate-modal-in">
               <img
-                src="/icons/logo.png"
+                src="/icons/logo-512.png"
                 alt="Spira"
                 className="w-24 h-24 animate-bounce"
               />
@@ -350,10 +379,7 @@ const FlashcardPage: React.FC = () => {
                 setIsFlashcardReviewOpened={setIsFlashcardReviewOpened}
                 setIsFlashcardAdderOpened={setIsFlashcardAdderOpened}
                 setIsFlashcardRemoverOpened={setIsFlashcardRemoverOpened}
-                removeDeck={() => {
-                  removeDeck(deckId ?? "");
-                  navigate(-1);
-                }}
+                removeDeck={() => setIsConfirmingDeckDelete(true)}
                 editDeckName={() => setIsEditDeckNameOpen(true)}
               />
             )}
@@ -388,6 +414,41 @@ const FlashcardPage: React.FC = () => {
           </RoundButton>
         </div>
       ) : null}
+      {isConfirmingDeckDelete && (
+        <Popin
+          onClose={() => setIsConfirmingDeckDelete(false)}
+          title="Supprimer le deck ?"
+        >
+          <div className="flex flex-col gap-6">
+            <p className="text-sm text-muted">
+              « {deck.name} » et ses {deck.flashcards.length} carte
+              {deck.flashcards.length !== 1 ? "s" : ""} seront supprimés
+              définitivement.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="primary"
+                outlineStyle
+                additionnalClassName="flex-1"
+                onClick={() => setIsConfirmingDeckDelete(false)}
+              >
+                Annuler
+              </Button>
+              <Button
+                variant="contrast"
+                additionnalClassName="flex-1"
+                onClick={async () => {
+                  setIsConfirmingDeckDelete(false);
+                  await removeDeck(deckId ?? "");
+                  navigate(-1);
+                }}
+              >
+                Supprimer
+              </Button>
+            </div>
+          </div>
+        </Popin>
+      )}
       {isEditDeckNameOpen && (
         <EditDeckName
           initialDeckName={deck.name}
