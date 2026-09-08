@@ -9,6 +9,8 @@ import Favorite from "@mui/icons-material/Favorite";
 import { RoundButtonMenu } from "./RoundButtonMenu";
 import DriveFileRenameOutline from "@mui/icons-material/DriveFileRenameOutline";
 import WebStories from "@mui/icons-material/WebStories";
+import VolumeUp from "@mui/icons-material/VolumeUp";
+import VolumeOff from "@mui/icons-material/VolumeOff";
 
 interface FlashcardHomepageProps {
   numberOfCards: number;
@@ -19,6 +21,8 @@ interface FlashcardHomepageProps {
   setIsFlashcardRemoverOpened(isOpened: boolean): void;
   removeDeck(): void;
   editDeckName(): void;
+  isReaderEnabled: boolean;
+  toggleReader(): void;
 }
 
 export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
@@ -30,6 +34,8 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
   setIsFlashcardRemoverOpened,
   removeDeck,
   editDeckName,
+  isReaderEnabled,
+  toggleReader,
 }) => {
   return (
     <>
@@ -65,6 +71,22 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
           <p className="mt-6 text-muted text-sm font-medium flex items-center gap-2">
             Cliquez pour démarrer <TouchApp className="w-4 h-4 opacity-70" />
           </p>
+          <button
+            onClick={toggleReader}
+            aria-pressed={isReaderEnabled}
+            className={`mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+              isReaderEnabled
+                ? "bg-primary/15 border-primary/50 text-primary"
+                : "bg-surface-elevated/80 border-surface-elevated text-muted"
+            }`}
+          >
+            {isReaderEnabled ? (
+              <VolumeUp className="w-4 h-4" />
+            ) : (
+              <VolumeOff className="w-4 h-4" />
+            )}
+            Lecture audio {isReaderEnabled ? "activée" : "désactivée"}
+          </button>
         </div>
       ) : totalCards === 0 ? (
         <div className="flex flex-col items-center text-center px-6 py-12 max-w-md mx-auto">

@@ -46,6 +46,8 @@ const FlashcardPage: React.FC = () => {
   const [isFinished, setIsFinished] = useState(false);
   const [isEditDeckNameOpen, setIsEditDeckNameOpen] = useState(false);
   const [isConfirmingDeckDelete, setIsConfirmingDeckDelete] = useState(false);
+  // Désactivé par défaut à chaque ouverture, volontairement non persisté
+  const [isReaderEnabled, setIsReaderEnabled] = useState(false);
   const [triggerProgressBarAnimations, setTriggerProgressBarAnimations] =
     useState(false);
   const [fadeProgressBarToBlackAnimation, setFadeProgressBarToBlackAnimation] =
@@ -270,6 +272,8 @@ const FlashcardPage: React.FC = () => {
     }
   };
 
+  const toggleReader = () => setIsReaderEnabled((prev) => !prev);
+
   const goBack = () => {
     switch (true) {
       case isFlashcardReviewOpened:
@@ -381,6 +385,8 @@ const FlashcardPage: React.FC = () => {
                 setIsFlashcardRemoverOpened={setIsFlashcardRemoverOpened}
                 removeDeck={() => setIsConfirmingDeckDelete(true)}
                 editDeckName={() => setIsEditDeckNameOpen(true)}
+                isReaderEnabled={isReaderEnabled}
+                toggleReader={toggleReader}
               />
             )}
 
@@ -393,6 +399,8 @@ const FlashcardPage: React.FC = () => {
                 markAsFailed={failFlashcard}
                 updateFalshcard={updateFlashcard}
                 reviewButtonRefs={{ failedButton, successButton }}
+                readerEnabled={isReaderEnabled}
+                toggleReader={toggleReader}
               />
             </>
           )}

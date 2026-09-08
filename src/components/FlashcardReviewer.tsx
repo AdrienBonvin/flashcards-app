@@ -9,6 +9,9 @@ import Close from "@mui/icons-material/Close";
 import { Flashcard } from "../types";
 import FlipCard from "./FlipCard";
 import Edit from "@mui/icons-material/Edit";
+import VolumeUp from "@mui/icons-material/VolumeUp";
+import VolumeOff from "@mui/icons-material/VolumeOff";
+import { speak, stopSpeaking } from "../utils/speechReader";
 
 interface FlashcardReviewerProps {
   flashcard: Flashcard;
@@ -19,6 +22,8 @@ interface FlashcardReviewerProps {
     successButton: Ref<HTMLButtonElement>;
     failedButton: Ref<HTMLButtonElement>;
   };
+  readerEnabled?: boolean;
+  toggleReader?: () => void;
 }
 
 export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
@@ -27,6 +32,8 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
   markAsFailed,
   updateFalshcard,
   reviewButtonRefs,
+  readerEnabled = false,
+  toggleReader,
 }) => {
   const [showAnswer, setShowAnswer] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
@@ -39,6 +46,18 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
   useEffect(() => {
     if (!showButtons && showAnswer) setShowButtons(true);
   }, [showAnswer, showButtons]);
+
+  // Lit la face visible quand elle apparaît (nouvelle carte, flip ou activation),
+  // coupe dès que la lecture est désactivée ou qu'on passe en édition
+  useEffect(() => {
+    if (!readerEnabled || isEditing) {
+      stopSpeaking();
+      return;
+    }
+    speak(showAnswer ? flashcard.answer : flashcard.question);
+  }, [readerEnabled, isEditing, showAnswer, flashcard.question, flashcard.answer]);
+
+  useEffect(() => stopSpeaking, []);
 
   const startEditing = () => {
     setDraftText(flashcard[editedField]);
@@ -146,6 +165,24 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
           <RoundButton position="right" onClick={startEditing}>
             <Edit />
           </RoundButton>
+          {toggleReader && (
+            <RoundButton
+              position="right"
+              onClick={toggleReader}
+              className="!bottom-24 md:!bottom-28 opacity-60 hover:opacity-100"
+              aria-label={
+                readerEnabled
+                  ? "Désactiver la lecture audio"
+                  : "Activer la lecture audio"
+              }
+            >
+              {readerEnabled ? (
+                <VolumeUp className="text-primary" />
+              ) : (
+                <VolumeOff />
+              )}
+            </RoundButton>
+          )}
         </>
       )}
     </div>
