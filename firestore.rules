@@ -1,17 +1,54 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function ownsDeck(deckId) {
+      return get(/databases/$(database)/documents/decks/$(deckId)).data.userId == request.auth.uid;
+    }
+
+    function isNonEmptyString(value, maxLength) {
+      return value is string && value.trim().size() > 0 && value.size() <= maxLength;
+    }
+
+    function validDeck(data) {
+      return data.keys().hasOnly(['name', 'userId', 'lastCompletedReviewAt', 'flashcards'])
+        && isNonEmptyString(data.name, 100)
+        && data.userId is string
+        && (!('lastCompletedReviewAt' in data) || data.lastCompletedReviewAt is timestamp);
+    }
+
+    function validFlashcard(data) {
+      return data.keys().hasOnly(['question', 'answer', 'reviewDate', 'reviewCount', 'archived'])
+        && isNonEmptyString(data.question, 5000)
+        && isNonEmptyString(data.answer, 5000)
+        && data.reviewDate is timestamp
+        && data.reviewCount is int && data.reviewCount >= 0 && data.reviewCount <= 1000
+        && (!('archived' in data) || data.archived is bool);
+    }
+
     match /decks/{deckId} {
       // Un utilisateur ne voit et ne modifie que ses propres decks
-      allow read, update, delete: if request.auth != null
+      allow read, delete: if isSignedIn()
         && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null
-        && request.resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && validDeck(request.resource.data);
+      // Le propriétaire ne peut pas être transféré
+      allow update: if isSignedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && validDeck(request.resource.data);
 
       match /flashcards/{flashcardId} {
         // Accès aux cartes conditionné à la possession du deck parent
-        allow read, write: if request.auth != null
-          && get(/databases/$(database)/documents/decks/$(deckId)).data.userId == request.auth.uid;
+        allow read, delete: if isSignedIn() && ownsDeck(deckId);
+        allow create, update: if isSignedIn()
+          && ownsDeck(deckId)
+          && validFlashcard(request.resource.data);
       }
     }
   }
