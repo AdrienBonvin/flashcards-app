@@ -1,16 +1,7 @@
-import PostAdd from "@mui/icons-material/PostAdd";
 import { RoundButton } from "./RoundButton";
-import DeleteForever from "@mui/icons-material/DeleteForever";
-import Menu from "@mui/icons-material/Menu";
-import TouchApp from "@mui/icons-material/TouchApp";
-import ViewCarousel from "@mui/icons-material/ViewCarousel";
 
-import Favorite from "@mui/icons-material/Favorite";
 import { RoundButtonMenu } from "./RoundButtonMenu";
-import DriveFileRenameOutline from "@mui/icons-material/DriveFileRenameOutline";
-import WebStories from "@mui/icons-material/WebStories";
-import VolumeUp from "@mui/icons-material/VolumeUp";
-import VolumeOff from "@mui/icons-material/VolumeOff";
+import { Icon } from "./icons/Icon";
 
 interface FlashcardHomepageProps {
   numberOfCards: number;
@@ -71,7 +62,7 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
             />
           </button>
           <p className="mt-6 text-muted text-sm font-medium flex items-center gap-2">
-            Cliquez pour démarrer <TouchApp className="w-4 h-4 opacity-70" />
+            Cliquez pour démarrer <Icon name="touch-app" className="w-4 h-4 opacity-70" />
           </p>
           <button
             onClick={toggleReader}
@@ -83,9 +74,9 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
             }`}
           >
             {isReaderEnabled ? (
-              <VolumeUp className="w-4 h-4" />
+              <Icon name="volume-up" className="w-4 h-4" />
             ) : (
-              <VolumeOff className="w-4 h-4" />
+              <Icon name="volume-off" className="w-4 h-4" />
             )}
             Lecture audio {isReaderEnabled ? "activée" : "désactivée"}
           </button>
@@ -93,7 +84,7 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
       ) : totalCards === 0 ? (
         <div className="flex flex-col items-center text-center px-6 py-12 max-w-md mx-auto">
           <div className="w-20 h-20 rounded-2xl bg-surface-elevated border border-surface-elevated flex items-center justify-center mb-6">
-            <PostAdd className="text-primary w-10 h-10" />
+            <Icon name="post-add" className="text-primary w-10 h-10" />
           </div>
           <h2 className="font-bold text-xl md:text-2xl text-text-primary mb-2">
             Créez votre première carte
@@ -105,7 +96,7 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
       ) : (
         <div className="flex flex-col items-center text-center px-6 py-12 max-w-md mx-auto">
           <div className="w-20 h-20 rounded-2xl bg-surface-elevated/80 border border-primary/20 flex items-center justify-center mb-6">
-            <Favorite className="text-contrast w-10 h-10" />
+            <Icon name="favorite" className="text-contrast w-10 h-10" />
           </div>
           <h2 className="font-bold text-xl md:text-2xl text-text-primary mb-2">
             Tout est à jour !
@@ -123,7 +114,7 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
         </div>
       )}
       <RoundButtonMenu
-        mainIcon={<WebStories />}
+        mainIcon={<Icon name="web-stories" />}
         label="Gérer les cartes"
         position="right"
         classNameClosed={
@@ -138,23 +129,23 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
               totalCards === 0 ? "shadow-md shadow-contrast animate-bounce" : ""
             }
           >
-            <PostAdd />
+            <Icon name="post-add" />
           </RoundButton>
           <RoundButton
             onClick={() => setIsFlashcardRemoverOpened(true)}
             aria-label="Voir et modifier les cartes"
           >
-            <ViewCarousel />
+            <Icon name="view-carousel" />
           </RoundButton>
         </>
       </RoundButtonMenu>
-      <RoundButtonMenu mainIcon={<Menu />} label="Options du deck" position="top-right">
+      <RoundButtonMenu mainIcon={<Icon name="menu" />} label="Options du deck" position="top-right">
         <>
           <RoundButton onClick={editDeckName} aria-label="Renommer le deck">
-            <DriveFileRenameOutline />
+            <Icon name="drive-file-rename-outline" />
           </RoundButton>
           <RoundButton onClick={removeDeck} aria-label="Supprimer le deck">
-            <DeleteForever />
+            <Icon name="delete-forever" />
           </RoundButton>
         </>
       </RoundButtonMenu>

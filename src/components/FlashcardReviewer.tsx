@@ -1,17 +1,10 @@
 import { Ref, useEffect, useState } from "react";
 import { Button } from "./Button";
 import { RoundButton } from "./RoundButton";
-import ThumbUp from "@mui/icons-material/ThumbUp";
-import ThumbDown from "@mui/icons-material/ThumbDown";
-import TouchApp from "@mui/icons-material/TouchApp";
-import Check from "@mui/icons-material/Check";
-import Close from "@mui/icons-material/Close";
 import { Flashcard, GOLDEN_CARD_THRESHOLD } from "../types";
 import FlipCard from "./FlipCard";
-import Edit from "@mui/icons-material/Edit";
-import VolumeUp from "@mui/icons-material/VolumeUp";
-import VolumeOff from "@mui/icons-material/VolumeOff";
 import { speak, stopSpeaking } from "../utils/speechReader";
+import { Icon } from "./icons/Icon";
 
 interface FlashcardReviewerProps {
   flashcard: Flashcard;
@@ -103,7 +96,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
               outlineStyle
               aria-label="Annuler la modification"
             >
-              <Close style={{ fontSize: "2rem" }} />
+              <Icon name="close" size="2rem" />
             </Button>
             <Button
               onClick={saveEdit}
@@ -112,7 +105,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
               variant="primary"
               aria-label="Enregistrer la modification"
             >
-              <Check style={{ fontSize: "2rem" }} />
+              <Icon name="check" size="2rem" />
             </Button>
           </div>
         </>
@@ -135,8 +128,8 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
                 outlineStyle={lastCardReview}
                 aria-label="Je ne savais pas"
               >
-                <ThumbDown
-                  style={{ fill: "currentcolor", fontSize: "3rem" }}
+                <Icon name="thumb-down"
+                  size="3rem"
                   className={`md:text-5xl ${
                     lastCardReview ? "text-amber-200" : "text-orange-950"
                   }`}
@@ -151,8 +144,8 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
                 variant="primary"
                 aria-label="Je savais"
               >
-                <ThumbUp
-                  style={{ fill: "currentcolor", fontSize: "3rem" }}
+                <Icon name="thumb-up"
+                  size="3rem"
                   className={`md:text-5xl ${
                     lastCardReview ? "text-amber-100" : "text-blue-50"
                   }`}
@@ -162,7 +155,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
           ) : (
             <div className="flex justify-center items-center pt-12">
               <p className="text-muted text-sm font-medium flex items-center">
-                Touchez pour voir la réponse <TouchApp className="w-4 h-4" />
+                Touchez pour voir la réponse <Icon name="touch-app" className="w-4 h-4" />
               </p>
             </div>
           )}
@@ -171,7 +164,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
             onClick={startEditing}
             aria-label={showAnswer ? "Modifier la réponse" : "Modifier la question"}
           >
-            <Edit />
+            <Icon name="edit" />
           </RoundButton>
           {toggleReader && (
             <RoundButton
@@ -185,9 +178,9 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
               }
             >
               {readerEnabled ? (
-                <VolumeUp className="text-primary" />
+                <Icon name="volume-up" className="text-primary" />
               ) : (
-                <VolumeOff />
+                <Icon name="volume-off" />
               )}
             </RoundButton>
           )}

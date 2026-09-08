@@ -3,18 +3,12 @@ import { Deck, flashcardUtils } from "../types";
 import { Link } from "react-router-dom";
 import { RoundButton } from "../components/RoundButton";
 import { DeckAdder } from "../components/DeckAdder";
-import Add from "@mui/icons-material/Add";
-import Clear from "@mui/icons-material/Clear";
 import { useUserDataContext } from "../contexts/UserDataContext";
-import ChevronRight from "@mui/icons-material/ChevronRight";
-import Check from "@mui/icons-material/Check";
-import EmojiEvents from "@mui/icons-material/EmojiEvents";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
-import Logout from "@mui/icons-material/Logout";
-import Lightbulb from "@mui/icons-material/Lightbulb";
 import Popin from "../components/Popin";
 import goldenCardTransformation from "../assets/goldenCardTransformation-512.png";
+import { Icon } from "../components/icons/Icon";
 
 const isSameCalendarDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() &&
@@ -169,9 +163,9 @@ const DeckPage: React.FC = () => {
                             ) : (
                               <>
                                 {isCompletedToday ? (
-                                  <EmojiEvents className="w-3.5 h-3.5" />
+                                  <Icon name="emoji-events" className="w-3.5 h-3.5" />
                                 ) : (
-                                  <Check className="w-3.5 h-3.5" />
+                                  <Icon name="check" className="w-3.5 h-3.5" />
                                 )}
                                 {isCompletedToday
                                   ? "Terminé !"
@@ -188,7 +182,7 @@ const DeckPage: React.FC = () => {
                               à réviser
                             </span>
                             <span className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-primary/25 text-primary/70 group-hover:border-primary/50 group-hover:text-primary group-hover:bg-primary/10 transition-all duration-200">
-                              <ChevronRight className="w-4 h-4" />
+                              <Icon name="chevron-right" className="w-4 h-4" />
                             </span>
                           </span>
                         )}
@@ -223,17 +217,17 @@ const DeckPage: React.FC = () => {
             : ""
         }
       >
-        {isAddDeckViewVisible ? <Clear /> : <Add />}
+        {isAddDeckViewVisible ? <Icon name="clear" /> : <Icon name="add" />}
       </RoundButton>
       <RoundButton onClick={logout} position="top-left" aria-label="Se déconnecter">
-        <Logout />
+        <Icon name="logout" />
       </RoundButton>
       <RoundButton
         onClick={() => setIsInfosOpened(!isInfosOpened)}
         position="top-right"
         aria-label="Aide"
       >
-        <Lightbulb />
+        <Icon name="lightbulb" />
       </RoundButton>
     </div>
   );

@@ -7,11 +7,10 @@ import {
 import { auth } from "../../firebaseConfig";
 import { Input } from "../Input";
 import { Button } from "../Button";
-import Email from "@mui/icons-material/Email";
-import PersonAdd from "@mui/icons-material/PersonAdd";
 import { LoginProps } from "./ProtectedRoute";
 import { useUserDataContext } from "../../contexts/UserDataContext";
 import { getAuthErrorMessage } from "../../utils/authErrors";
+import { Icon } from "../icons/Icon";
 
 export const LoginWithEmail: React.FC<LoginProps> = ({ isRegistering }) => {
   const { setIsLoading } = useUserDataContext();
@@ -94,12 +93,12 @@ export const LoginWithEmail: React.FC<LoginProps> = ({ isRegistering }) => {
       <Button type="submit" variant="primary" outlineStyle>
         {isRegistering ? (
           <>
-            <PersonAdd className="pr-2" />
+            <Icon name="person-add" className="mr-2" />
             Créer mon compte
           </>
         ) : (
           <>
-            <Email className="pr-2" />
+            <Icon name="email" className="mr-2" />
             Connexion
           </>
         )}

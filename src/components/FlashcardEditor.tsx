@@ -1,8 +1,3 @@
-import Delete from "@mui/icons-material/Delete";
-import Edit from "@mui/icons-material/Edit";
-import SwapVert from "@mui/icons-material/SwapVert";
-import Replay from "@mui/icons-material/Replay";
-import EmojiEvents from "@mui/icons-material/EmojiEvents";
 import { useMemo, useState } from "react";
 import { Flashcard } from "../types";
 import { Button } from "./Button";
@@ -11,6 +6,7 @@ import Popin from "./Popin";
 import EditCard from "./EditCard";
 import { addFibonacci, getDaysTillNextReview } from "../utils/spacedRepetition";
 import { Input } from "./Input";
+import { Icon } from "./icons/Icon";
 
 interface FlashcardEditorProps {
   flashcards: Flashcard[];
@@ -133,7 +129,7 @@ const FlashcardEditor: React.FC<FlashcardEditorProps> = ({
                   : "Trier par répétitions croissantes"
               }
             >
-              <SwapVert fontSize="large" />
+              <Icon name="swap-vert" size="2.2rem" />
             </Button>
           </div>
 
@@ -156,7 +152,7 @@ const FlashcardEditor: React.FC<FlashcardEditorProps> = ({
                     />
                     {flashcard.archived && (
                       <span className="absolute top-14 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-400 text-amber-950 text-xs font-bold shadow-card">
-                        <EmojiEvents className="!w-4 !h-4" />
+                        <Icon name="emoji-events" className="w-4 h-4" />
                         Acquise
                       </span>
                     )}
@@ -169,7 +165,7 @@ const FlashcardEditor: React.FC<FlashcardEditorProps> = ({
                       variant="primary"
                       aria-label="Modifier la carte"
                     >
-                      <Edit fontSize="large" />
+                      <Icon name="edit" size="2.2rem" />
                     </Button>
                     {flashcard.archived && (
                       <Button
@@ -179,7 +175,7 @@ const FlashcardEditor: React.FC<FlashcardEditorProps> = ({
                         outlineStyle
                         aria-label="Remettre la carte en révision"
                       >
-                        <Replay fontSize="large" />
+                        <Icon name="replay" size="2.2rem" />
                       </Button>
                     )}
                     <Button
@@ -188,7 +184,7 @@ const FlashcardEditor: React.FC<FlashcardEditorProps> = ({
                       variant="contrast"
                       aria-label="Supprimer la carte"
                     >
-                      <Delete fontSize="large" />
+                      <Icon name="delete" size="2.2rem" />
                     </Button>
                   </div>
                 </div>

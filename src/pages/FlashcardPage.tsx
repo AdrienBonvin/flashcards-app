@@ -9,13 +9,13 @@ import { FlashcardReviewer } from "../components/FlashcardReviewer";
 import { FlashcardAdder } from "../components/FlashcardAdder";
 import { RoundButton } from "../components/RoundButton";
 import { FlashcardHomepage } from "../components/FlashcardHomepage";
-import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import { useUserDataContext } from "../contexts/UserDataContext";
 import { ProgressBar } from "../components/ProgressBar";
 import FlashcardEditor from "../components/FlashcardEditor";
 import { EditDeckName } from "../components/EditDeckName";
 import Popin from "../components/Popin";
 import { Button } from "../components/Button";
+import { Icon } from "../components/icons/Icon";
 
 type AnimationType = "SUCCESS" | "FAILED" | "LEARNED";
 
@@ -308,7 +308,7 @@ const FlashcardPage: React.FC = () => {
           position="left"
           aria-label={isSubViewOpened ? "Retour au deck" : "Retour aux decks"}
         >
-          <ChevronLeft />
+          <Icon name="chevron-left" />
         </RoundButton>
       </div>
 

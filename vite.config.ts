@@ -22,6 +22,24 @@ export default defineConfig(({ command, isPreview }) => ({
       },
     }),
   ],
+  build: {
+    // Le chunk Firebase (auth + firestore) pèse ~550 Ko minifié / 130 Ko gzip : connu, accepté
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        // Vendors dans des chunks séparés : une mise à jour de l'app ne fait
+        // retélécharger (et re-précacher) que ~50 Ko au lieu de ~830 Ko
+        // Firebase reste en un seul chunk : le séparer par service (auth,
+        // firestore, core) crée des imports circulaires entre chunks et plante
+        // au démarrage (« Cannot access X before initialization »)
+        manualChunks(id) {
+          if (id.includes('node_modules/@firebase/') || id.includes('node_modules/firebase/'))
+            return 'firebase'
+          if (id.includes('node_modules/react')) return 'react'
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       '/__/auth': {
