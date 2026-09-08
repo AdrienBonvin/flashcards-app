@@ -148,6 +148,14 @@ const FlashcardPage: React.FC = () => {
     });
   };
 
+  // Carte acquise remise en révision : elle repart de zéro et revient aujourd'hui
+  const restoreFlashcard = (flashcardId: string) =>
+    updateFlashcard(deckId, flashcardId, {
+      archived: false,
+      reviewCount: 0,
+      reviewDate: new Date(),
+    });
+
   const editFlashcard = (edited: Flashcard) =>
     updateFlashcard(deckId, edited.id, {
       question: edited.question.trim(),
@@ -291,6 +299,7 @@ const FlashcardPage: React.FC = () => {
             flashcards={deck.flashcards}
             removeFlashcard={(flashcardId) => removeFlashcard(deckId, flashcardId)}
             updateFlashcard={editFlashcard}
+            restoreFlashcard={restoreFlashcard}
           />
         )}
 
