@@ -3,10 +3,12 @@ import react from '@vitejs/plugin-react'
 import mkcert from 'vite-plugin-mkcert'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
+export default defineConfig(({ command, isPreview }) => ({
   plugins: [
     react(),
-    mkcert(),
+    // Certificat HTTPS local uniquement pour `vite dev` : le plugin télécharge mkcert
+    // depuis GitHub, inutile (et bloquant hors ligne) pour build et preview
+    command === 'serve' && !isPreview && mkcert(),
     VitePWA({
       registerType: 'autoUpdate',
       manifest: false, // use existing public/manifest.json
@@ -28,4 +30,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))
