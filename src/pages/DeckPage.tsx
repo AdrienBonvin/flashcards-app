@@ -49,7 +49,7 @@ const DeckPage: React.FC = () => {
     a.getDate() === b.getDate();
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen w-full h-screen px-6 py-16 md:py-24">
+    <div className="relative flex flex-col items-center justify-center min-h-dvh w-full px-6 py-16 md:py-24">
       {isInfosOpened && (
         <Popin onClose={() => setIsInfosOpened(false)} title="Aide">
           <div className="space-y-6 text-sm text-text-secondary">

@@ -21,6 +21,7 @@
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
+    min-height: 100dvh;
     background-color: #1a1a1e;
     color: #f9fafb;
   }
@@ -33,7 +34,7 @@
 
   /* Selection styling */
   ::selection {
-    background-color: rgb(0, 156, 202 / 0.3);
+    background-color: rgb(0 156 202 / 0.3);
   }
 }
 

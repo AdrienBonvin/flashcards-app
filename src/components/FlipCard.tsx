@@ -39,13 +39,13 @@ const FlipCard: React.FC<FlipCardProps> = ({
       onKeyDown={(e) => e.key === "Enter" && setIsFlipped((prev) => !prev)}
     >
       <div
-        className={`relative h-full w-full rounded-xl shadow-xl transition-all duration-500 [transform-style:preserve-3d]  ${
+        className={`relative h-full w-full rounded-xl shadow-xl transition-all duration-500 [transform-style:preserve-3d] ${
           isFlipped
             ? "[transform:rotateY(180deg)]"
-            : `
-                ${goldShineAnimation ? "golden-shine" : ""}
-              }`
-        }  `}
+            : goldShineAnimation
+              ? "golden-shine"
+              : ""
+        }`}
         onTransitionEnd={() => {
           if (isFlipped) return;
           if (goldenCard) setGoldShineAnimation(true);

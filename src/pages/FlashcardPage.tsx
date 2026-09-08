@@ -294,7 +294,7 @@ const FlashcardPage: React.FC = () => {
   return (
     <>
       {isDataLoaded ? (
-        <div className="flex flex-col min-h-screen w-full items-center justify-center gap-y-10 px-6 py-16 md:py-24">
+        <div className="flex flex-col min-h-dvh w-full items-center justify-center gap-y-10 px-6 py-16 md:py-24">
           {(isFinished || isFlashcardReviewOpened) && (
             <>
               <ProgressBar

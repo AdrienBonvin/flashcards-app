@@ -31,8 +31,8 @@ export default {
         card: "0 4px 6px -1px rgb(0 0 0 / 0.2), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
         "card-hover":
           "0 10px 15px -3px rgb(0 0 0 / 0.25), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
-        glow: "0 0 20px -5px rgb(0, 156, 202 / 0.3)",
-        "glow-contrast": "0 0 20px -5px rgb(240, 151, 45 / 0.3)",
+        glow: "0 0 20px -5px rgb(0 156 202 / 0.3)",
+        "glow-contrast": "0 0 20px -5px rgb(240 151 45 / 0.3)",
       },
       transitionTimingFunction: {
         smooth: "cubic-bezier(0.4, 0, 0.2, 1)",

@@ -30,7 +30,7 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
     <>
       <Loader loading={isLoading} />
       {!user ? (
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-16">
+        <div className="min-h-dvh bg-background flex flex-col items-center justify-center px-6 py-16">
           <div className="w-full max-w-sm">
             <img
               src="/icons/logo-512.png"
