@@ -56,13 +56,12 @@ const EditCard: React.FC<EditCardProps> = ({
       <Button
         additionnalClassName="mt-4"
         onClick={() => {
-          console.log("Saving flashcard:", flashcardToEdit);
           if (flashcardToEdit) updateFlashcard(flashcardToEdit);
           setFlashcardToEdit(null);
         }}
         variant={"primary"}
       >
-        Save
+        Enregistrer
       </Button>
     </div>
   );

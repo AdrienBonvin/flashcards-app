@@ -1,5 +1,19 @@
 # Spira (Flashcards App)
 
+Application de flashcards (PWA) avec répétition espacée basée sur la suite de Fibonacci.
+Stack : React 19, TypeScript, Vite, Tailwind CSS, Firebase (Auth + Firestore), Workbox.
+
+## Scripts
+
+```bash
+npm run dev       # serveur de dev en HTTPS (https://localhost:5173)
+npm run build     # typecheck + build de production dans dist/
+npm run preview   # sert le build de production
+npm run lint      # ESLint
+npm test          # tests unitaires (Vitest)
+npm run deploy    # build + firebase deploy
+```
+
 ## Google Sign-In on localhost
 
 Chrome blocks Firebase auth when the app runs on `http://localhost` (Local Network Access policy). The fix:
@@ -13,8 +27,6 @@ Chrome blocks Firebase auth when the app runs on `http://localhost` (Local Netwo
 3. **Configure Google Cloud** – In [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials), edit your OAuth Client ID and add:
    - **Authorized redirect URI:** `https://localhost:5173/__/auth/handler`
    - **Authorized JavaScript origin:** `https://localhost:5173` (optional)
-
----
 
 ## Deploy to Firebase
 
@@ -32,69 +44,20 @@ Chrome blocks Firebase auth when the app runs on `http://localhost` (Local Netwo
    ```bash
    npm run deploy
    ```
-   Or manually:
-   ```bash
-   npm run build
-   firebase deploy
-   ```
 
 Your app will be live at:
 - `https://flashcards-app-7a630.web.app`
 - `https://flashcards-app-7a630.firebaseapp.com`
 
----
+## Structure
 
-# React + TypeScript + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
 ```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+src/
+  components/      composants UI (FlipCard, FlashcardReviewer, Popin…)
+  components/login écran de connexion (email + Google)
+  contexts/        UserDataContext : auth, decks, cartes (source de vérité)
+  pages/           DeckPage (liste des decks), FlashcardPage (un deck)
+  utils/           spacedRepetition (Fibonacci), speechReader (lecture vocale)
+  sw.ts            service worker Workbox (injectManifest)
+firestore.rules    règles de sécurité Firestore
 ```
