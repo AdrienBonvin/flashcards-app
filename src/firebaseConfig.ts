@@ -1,6 +1,10 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "firebase/firestore";
 
 // Use current host so auth iframe loads from same origin - avoids Chrome's "local address space" CORS block
 // (Firebase iframe from firebaseapp.com fails in Chrome when parent is on web.app)
@@ -21,7 +25,12 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-export const auth = getAuth(app);
 
-export { db };
+// Cache local persistant (IndexedDB) : l'app s'ouvre et se révise hors ligne,
+// les écritures sont rejouées au retour du réseau. Multi-onglets géré.
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager(),
+  }),
+});
+export const auth = getAuth(app);
