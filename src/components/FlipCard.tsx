@@ -4,6 +4,8 @@ interface FlipCardProps {
   question: string;
   answer: string;
   onCardFlip?: (isFlipped: boolean) => void;
+  /** Mode contrôlé : l'état retourné est piloté par le parent (raccourcis clavier…) */
+  flipped?: boolean;
   goldenCard?: boolean;
   className?: string;
 }
@@ -12,10 +14,12 @@ const FlipCard: React.FC<FlipCardProps> = ({
   question,
   answer,
   onCardFlip,
+  flipped,
   goldenCard,
   className,
 }) => {
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [internalFlipped, setInternalFlipped] = useState(false);
+  const isFlipped = flipped ?? internalFlipped;
   const [goldShineAnimation, setGoldShineAnimation] = useState(goldenCard);
 
   const cardStyle = useMemo(
@@ -29,7 +33,7 @@ const FlipCard: React.FC<FlipCardProps> = ({
 
   const flip = () => {
     const next = !isFlipped;
-    setIsFlipped(next);
+    if (flipped === undefined) setInternalFlipped(next);
     onCardFlip?.(next);
   };
 

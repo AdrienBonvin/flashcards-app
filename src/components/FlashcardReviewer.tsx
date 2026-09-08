@@ -40,6 +40,42 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
     if (!showButtons && showAnswer) setShowButtons(true);
   }, [showAnswer, showButtons]);
 
+  // Raccourcis clavier (desktop) : Espace/Entrée retourne, ← je ne savais pas,
+  // → je savais, E modifie. Inactifs pendant l'édition ou dans un champ de saisie.
+  useEffect(() => {
+    if (isEditing) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      // La carte (role=button) et les boutons gèrent déjà Entrée/Espace eux-mêmes
+      if (
+        target &&
+        (["INPUT", "TEXTAREA", "BUTTON"].includes(target.tagName) ||
+          target.getAttribute("role") === "button")
+      )
+        return;
+      switch (e.key) {
+        case " ":
+        case "Enter":
+          e.preventDefault();
+          setShowAnswer((prev) => !prev);
+          break;
+        case "ArrowLeft":
+          if (showButtons) markAsFailed(flashcard);
+          break;
+        case "ArrowRight":
+          if (showButtons) markAsReviewed(flashcard);
+          break;
+        case "e":
+        case "E":
+          setDraftText(flashcard[showAnswer ? "answer" : "question"]);
+          setIsEditing(true);
+          break;
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isEditing, showButtons, showAnswer, flashcard, markAsFailed, markAsReviewed]);
+
   // Lit la face visible quand elle apparaît (nouvelle carte, flip ou activation),
   // coupe dès que la lecture est désactivée ou qu'on passe en édition
   useEffect(() => {
@@ -114,6 +150,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
           <FlipCard
             question={flashcard.question}
             answer={flashcard.answer}
+            flipped={showAnswer}
             onCardFlip={setShowAnswer}
             goldenCard={lastCardReview}
             className="md:w-1/3 lg:w-1/3"
@@ -153,9 +190,18 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
               </Button>
             </div>
           ) : (
-            <div className="flex justify-center items-center pt-12">
-              <p className="text-muted text-sm font-medium flex items-center">
+            <div className="flex flex-col justify-center items-center gap-2 pt-12">
+              <p className="text-muted text-sm font-medium flex items-center gap-1">
                 Touchez pour voir la réponse <Icon name="touch-app" className="w-4 h-4" />
+              </p>
+              <p className="hidden md:block text-muted/70 text-xs">
+                <kbd className="px-1.5 py-0.5 rounded border border-surface-elevated bg-surface">Espace</kbd>{" "}
+                retourner ·{" "}
+                <kbd className="px-1.5 py-0.5 rounded border border-surface-elevated bg-surface">←</kbd>{" "}
+                <kbd className="px-1.5 py-0.5 rounded border border-surface-elevated bg-surface">→</kbd>{" "}
+                répondre ·{" "}
+                <kbd className="px-1.5 py-0.5 rounded border border-surface-elevated bg-surface">E</kbd>{" "}
+                modifier
               </p>
             </div>
           )}
