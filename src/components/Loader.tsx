@@ -3,13 +3,21 @@ interface LoaderProps {
 }
 
 export const Loader: React.FC<LoaderProps> = ({ loading }) => {
+  if (!loading) return null;
   return (
-    <>
-      {loading && (
-        <div className="w-screen h-screen flex items-center justify-center z-index-10">
-          <img src="/icons/logo-512.png" className="w-24 h-24 animate-pulse" />
-        </div>
-      )}
-    </>
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-background"
+      role="status"
+      aria-live="polite"
+      aria-label="Chargement"
+    >
+      <img
+        src="/icons/logo-512.png"
+        alt=""
+        width={96}
+        height={96}
+        className="w-24 h-24 animate-pulse"
+      />
+    </div>
   );
 };

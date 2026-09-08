@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Deck, flashcardUtils } from "../types";
 import { Link } from "react-router-dom";
 import { RoundButton } from "../components/RoundButton";
@@ -16,17 +16,18 @@ import Lightbulb from "@mui/icons-material/Lightbulb";
 import Popin from "../components/Popin";
 import goldenCardTransformation from "../assets/goldenCardTransformation-512.png";
 
+const isSameCalendarDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate();
+
 const DeckPage: React.FC = () => {
-  const { decks, addDeck, loadData } = useUserDataContext();
+  const { decks, addDeck } = useUserDataContext();
 
   const [isAddDeckViewVisible, setIsAddDeckViewVisible] =
     useState<boolean>(false);
 
   const [isInfosOpened, setIsInfosOpened] = useState<boolean>(false);
-
-  useEffect(() => {
-    loadData();
-  }, []);
 
   const logout = async () => {
     try {
@@ -37,16 +38,20 @@ const DeckPage: React.FC = () => {
   };
 
   const onClickAddDeck = (newDeckName: string) => {
-    if (newDeckName) {
+    if (newDeckName.trim()) {
       addDeck(newDeckName);
       setIsAddDeckViewVisible(false);
     }
   };
 
-  const isSameCalendarDay = (a: Date, b: Date) =>
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate();
+  // Copie avant tri : .sort() en place muterait l'état du contexte pendant le rendu
+  const sortedDecks = decks
+    ? [...decks].sort(
+        (deckA: Deck, deckB: Deck) =>
+          flashcardUtils.getReviewableCards(deckB.flashcards).length -
+          flashcardUtils.getReviewableCards(deckA.flashcards).length
+      )
+    : [];
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-dvh w-full px-6 py-16 md:py-24">
@@ -99,6 +104,8 @@ const DeckPage: React.FC = () => {
         <img
           src="/icons/logo-512.png"
           alt="Spira"
+          width={144}
+          height={144}
           className="w-28 md:w-36 h-auto mb-6"
         />
         <h1 className="text-4xl md:text-6xl font-display font-extrabold tracking-tight">
@@ -115,13 +122,7 @@ const DeckPage: React.FC = () => {
         {/* min-h-0 : autorise la liste à rétrécir et scroller au lieu d'être coupée sur petit écran */}
         <div className="relative w-full isolate pt-4 min-h-0 flex flex-col">
           <ul className="deck-list-scroll relative z-0 min-h-0 space-y-3 max-h-[50vh] overflow-y-auto overflow-x-hidden pt-2 pb-7 px-2 sm:px-3">
-            {decks
-              ?.sort(
-                (deckA: Deck, deckB: Deck) =>
-                  flashcardUtils.getReviewableCards(deckB.flashcards).length -
-                  flashcardUtils.getReviewableCards(deckA.flashcards).length
-              )
-              .map((deck: Deck) => {
+            {sortedDecks.map((deck: Deck) => {
                 const reviewCount = flashcardUtils.getReviewableCards(
                   deck.flashcards
                 ).length;
@@ -214,6 +215,8 @@ const DeckPage: React.FC = () => {
       <RoundButton
         onClick={() => setIsAddDeckViewVisible(!isAddDeckViewVisible)}
         position="right"
+        aria-label={isAddDeckViewVisible ? "Annuler" : "Créer un deck"}
+        aria-expanded={isAddDeckViewVisible}
         className={
           decks?.length === 0 && !isAddDeckViewVisible
             ? "border-2 border-primary shadow-glow animate-bounce"
@@ -222,10 +225,14 @@ const DeckPage: React.FC = () => {
       >
         {isAddDeckViewVisible ? <Clear /> : <Add />}
       </RoundButton>
-      <RoundButton onClick={logout} position="top-left">
+      <RoundButton onClick={logout} position="top-left" aria-label="Se déconnecter">
         <Logout />
       </RoundButton>
-      <RoundButton onClick={() => setIsInfosOpened(!isInfosOpened)} position="top-right">
+      <RoundButton
+        onClick={() => setIsInfosOpened(!isInfosOpened)}
+        position="top-right"
+        aria-label="Aide"
+      >
         <Lightbulb />
       </RoundButton>
     </div>

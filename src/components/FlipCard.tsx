@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 interface FlipCardProps {
   question: string;
@@ -27,16 +27,26 @@ const FlipCard: React.FC<FlipCardProps> = ({
     [goldenCard]
   );
 
-  useEffect(() => {
-    onCardFlip?.(isFlipped);
-  }, [isFlipped]);
+  const flip = () => {
+    const next = !isFlipped;
+    setIsFlipped(next);
+    onCardFlip?.(next);
+  };
+
   return (
     <div
-      className={`h-[60vh] w-full [perspective:1000px] ${className}`}
-      onClick={() => setIsFlipped((prev) => !prev)}
+      className={`h-[60vh] w-full [perspective:1000px] cursor-pointer rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${className ?? ""}`}
+      onClick={flip}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === "Enter" && setIsFlipped((prev) => !prev)}
+      aria-pressed={isFlipped}
+      aria-label={isFlipped ? "Réponse. Retourner la carte" : "Question. Retourner la carte"}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          flip();
+        }
+      }}
     >
       <div
         className={`relative h-full w-full rounded-xl shadow-xl transition-all duration-500 [transform-style:preserve-3d] ${
@@ -62,6 +72,7 @@ const FlipCard: React.FC<FlipCardProps> = ({
 
         <div
           className={`${cardStyle} [transform:rotateY(180deg)] [backface-visibility:hidden]`}
+          aria-hidden={!isFlipped}
         >
           <p className="text-center break-words w-full h-full overflow-auto whitespace-pre-line">
             {answer}

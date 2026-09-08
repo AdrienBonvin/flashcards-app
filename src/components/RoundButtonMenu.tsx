@@ -3,6 +3,8 @@ import { RoundButton } from "./RoundButton";
 
 interface RoundButtonMenuProps {
   mainIcon: React.ReactNode;
+  /** Libellé accessible du bouton principal */
+  label: string;
   classNameClosed?: string;
   position?: RoundButton["position"];
   children?: React.ReactNode;
@@ -10,6 +12,7 @@ interface RoundButtonMenuProps {
 
 export const RoundButtonMenu: React.FC<RoundButtonMenuProps> = ({
   mainIcon,
+  label,
   classNameClosed,
   position,
   children,
@@ -52,12 +55,17 @@ export const RoundButtonMenu: React.FC<RoundButtonMenuProps> = ({
       <RoundButton
         onClick={() => setOpen((prev) => !prev)}
         position={position}
+        aria-label={label}
+        aria-haspopup="menu"
+        aria-expanded={open}
         className={`${open ? "animate-pulse" : ` ${classNameClosed}`}`}
       >
         {mainIcon}
       </RoundButton>
       {open && (
         <div
+          role="menu"
+          aria-label={label}
           className={`absolute flex flex-col gap-2 p-2 rounded-2xl bg-surface border border-surface-elevated shadow-card-hover ${menuListPosition}`}
         >
           {children}

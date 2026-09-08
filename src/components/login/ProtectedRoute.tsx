@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "../../firebaseConfig";
+import { useState } from "react";
 import { LoginWithEmail } from "./LoginWithEmail";
 import { LoginWithGoogle } from "./LoginWithGoogle";
 import { Loader } from "../Loader";
@@ -14,17 +12,12 @@ export interface LoginProps {
 export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { isLoading } = useUserDataContext();
-
-  const [user, setUser] = useState<User | null>(null);
+  const { user, isAuthReady, isLoading } = useUserDataContext();
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
+  // Tant que Firebase n'a pas restauré la session, on n'affiche ni login ni app
+  // (évite le flash de l'écran de connexion à chaque rechargement)
+  if (!isAuthReady) return <Loader loading />;
 
   return (
     <>
@@ -35,6 +28,8 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
             <img
               src="/icons/logo-512.png"
               alt="Spira"
+              width={80}
+              height={80}
               className="w-20 h-20 mx-auto mb-8"
             />
             <h1 className="text-2xl md:text-3xl font-extrabold text-center mb-8 text-text-primary">

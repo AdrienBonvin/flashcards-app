@@ -1,3 +1,5 @@
+import { useEffect, useId, useRef } from "react";
+
 interface PopinProps {
   onClose?: () => void;
   children: React.ReactNode;
@@ -5,16 +7,36 @@ interface PopinProps {
 }
 
 const Popin: React.FC<PopinProps> = ({ onClose, children, title }) => {
+  const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Rend le focus au déclencheur à la fermeture, et place le focus dans la modale à l'ouverture
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    panelRef.current?.focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose?.();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      previouslyFocused?.focus?.();
+    };
+  }, [onClose]);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={title ? "popin-title" : undefined}
     >
       <div
-        className="relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl border border-surface-elevated bg-surface shadow-2xl animate-modal-in"
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
+        className="relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl border border-surface-elevated bg-surface shadow-2xl animate-modal-in focus:outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -31,16 +53,14 @@ const Popin: React.FC<PopinProps> = ({ onClose, children, title }) => {
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
+            aria-hidden
           >
             <path d="M18 6L6 18M6 6l12 12" />
           </svg>
         </button>
         <div className="p-6 pt-10">
           {title && (
-            <h2
-              id="popin-title"
-              className="text-xl font-bold text-primary mb-5"
-            >
+            <h2 id={titleId} className="text-xl font-bold text-primary mb-5">
               {title}
             </h2>
           )}

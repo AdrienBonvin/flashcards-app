@@ -16,7 +16,7 @@ interface FlashcardHomepageProps {
   numberOfCards: number;
   totalCards: number;
   deckName: string;
-  setIsFlashcardReviewOpened(isOpened: boolean): void;
+  startReview(): void;
   setIsFlashcardAdderOpened(isOpened: boolean): void;
   setIsFlashcardRemoverOpened(isOpened: boolean): void;
   removeDeck(): void;
@@ -29,7 +29,7 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
   numberOfCards,
   totalCards,
   deckName,
-  setIsFlashcardReviewOpened,
+  startReview,
   setIsFlashcardAdderOpened,
   setIsFlashcardRemoverOpened,
   removeDeck,
@@ -49,7 +49,7 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
             <span className="text-contrast font-bold text-lg tabular-nums">{numberOfCards}</span>
           </div>
           <button
-            onClick={() => setIsFlashcardReviewOpened(true)}
+            onClick={startReview}
             className="group p-3 flex items-center justify-center relative
               hover:scale-110 active:scale-95
               focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:rounded-full
@@ -64,7 +64,9 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
             />
             <img
               src="/icons/logo-512.png"
-              alt="Démarrer la révision"
+              alt=""
+              width={144}
+              height={144}
               className="w-28 md:w-36 relative z-0"
             />
           </button>
@@ -111,11 +113,18 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
           <p className="text-muted text-sm leading-relaxed mb-6">
             Il ne reste aucune carte à réviser aujourd'hui. Revenez demain pour continuer.
           </p>
-          <img src="/icons/logo-512.png" alt="Spira" className="w-14 opacity-80" />
+          <img
+            src="/icons/logo-512.png"
+            alt=""
+            width={56}
+            height={56}
+            className="w-14 opacity-80"
+          />
         </div>
       )}
       <RoundButtonMenu
         mainIcon={<WebStories />}
+        label="Gérer les cartes"
         position="right"
         classNameClosed={
           totalCards === 0 ? "shadow-md shadow-contrast animate-bounce" : ""
@@ -124,23 +133,27 @@ export const FlashcardHomepage: React.FC<FlashcardHomepageProps> = ({
         <>
           <RoundButton
             onClick={() => setIsFlashcardAdderOpened(true)}
+            aria-label="Ajouter des cartes"
             className={
               totalCards === 0 ? "shadow-md shadow-contrast animate-bounce" : ""
             }
           >
             <PostAdd />
           </RoundButton>
-          <RoundButton onClick={() => setIsFlashcardRemoverOpened(true)}>
+          <RoundButton
+            onClick={() => setIsFlashcardRemoverOpened(true)}
+            aria-label="Voir et modifier les cartes"
+          >
             <ViewCarousel />
           </RoundButton>
         </>
       </RoundButtonMenu>
-      <RoundButtonMenu mainIcon={<Menu />} position="top-right">
+      <RoundButtonMenu mainIcon={<Menu />} label="Options du deck" position="top-right">
         <>
-          <RoundButton onClick={editDeckName}>
+          <RoundButton onClick={editDeckName} aria-label="Renommer le deck">
             <DriveFileRenameOutline />
           </RoundButton>
-          <RoundButton onClick={removeDeck}>
+          <RoundButton onClick={removeDeck} aria-label="Supprimer le deck">
             <DeleteForever />
           </RoundButton>
         </>

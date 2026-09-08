@@ -1,18 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
-import { db } from "../firebaseConfig";
-import {
-  collection,
-  addDoc,
-  updateDoc,
-  doc,
-  deleteDoc,
-} from "firebase/firestore";
-import { Deck, Flashcard, flashcardUtils } from "../types";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { Flashcard, flashcardUtils, GOLDEN_CARD_THRESHOLD } from "../types";
 import {
   getDaysTillNextReview,
   getNextReviewDate,
 } from "../utils/spacedRepetition";
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { FlashcardReviewer } from "../components/FlashcardReviewer";
 import { FlashcardAdder } from "../components/FlashcardAdder";
 import { RoundButton } from "../components/RoundButton";
@@ -25,24 +17,46 @@ import { EditDeckName } from "../components/EditDeckName";
 import Popin from "../components/Popin";
 import { Button } from "../components/Button";
 
+type AnimationType = "SUCCESS" | "FAILED" | "LEARNED";
+
+interface FloatingNumberAnimation {
+  success: AnimationType;
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+  daysLeft?: number;
+}
+
+// Durée d'affichage de l'écran de fin avant retour à la liste des decks
+const FINISHED_SCREEN_MS = 3500;
+
 const FlashcardPage: React.FC = () => {
   const navigate = useNavigate();
-  const { deckId } = useParams<{ deckId: string }>();
-  const { decks, removeDeck, setDeckLastCompletedReviewAt } = useUserDataContext();
+  const { deckId = "" } = useParams<{ deckId: string }>();
+  const {
+    decks,
+    removeDeck,
+    editDeckName,
+    setDeckLastCompletedReviewAt,
+    addFlashcard,
+    updateFlashcard,
+    removeFlashcard,
+  } = useUserDataContext();
 
-  const [flashcardsToReview, setFlashcardsToReview] = useState<Flashcard[]>([]);
-  const [deck, setDeck] = useState<Deck>({} as Deck);
-  const [currentFlashcard, setCurrentFlashcard] = useState<Flashcard | null>(
-    null
+  const deck = useMemo(
+    () => decks?.find((d) => d.id === deckId) ?? null,
+    [decks, deckId]
   );
-  const [flashcardInitialCount, setFlashcardInitialCount] = useState<number>(0);
-  const [isFlashcardReviewOpened, setIsFlashcardReviewOpened] =
-    useState<boolean>(false);
-  const [isFlashcardAdderOpened, setIsFlashcardAdderOpened] =
-    useState<boolean>(false);
-  const [isFlashcardRemoverOpened, setIsFlashcardRemoverOpened] =
-    useState<boolean>(false);
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  // File de révision dérivée du deck : une carte révisée/ratée/acquise en sort d'elle-même
+  const flashcardsToReview = useMemo(
+    () => (deck ? flashcardUtils.getReviewableCards(deck.flashcards) : []),
+    [deck]
+  );
+  const currentFlashcard: Flashcard | null = flashcardsToReview[0] ?? null;
+
+  const [isFlashcardReviewOpened, setIsFlashcardReviewOpened] = useState(false);
+  const [isFlashcardAdderOpened, setIsFlashcardAdderOpened] = useState(false);
+  const [isFlashcardRemoverOpened, setIsFlashcardRemoverOpened] = useState(false);
+  const [flashcardInitialCount, setFlashcardInitialCount] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
   const [isEditDeckNameOpen, setIsEditDeckNameOpen] = useState(false);
   const [isConfirmingDeckDelete, setIsConfirmingDeckDelete] = useState(false);
@@ -52,376 +66,243 @@ const FlashcardPage: React.FC = () => {
     useState(false);
   const [fadeProgressBarToBlackAnimation, setFadeProgressBarToBlackAnimation] =
     useState(false);
-  const [triggerFloatingNumberAnimation, setTriggerFloatingNumberAnimation] =
-    useState<{
-      success: "SUCCESS" | "FAILED" | "LEARNED";
-      start: { x: number; y: number };
-      end: { x: number; y: number };
-      daysLeft?: number;
-    } | null>(null);
+  const [floatingNumberAnimation, setFloatingNumberAnimation] =
+    useState<FloatingNumberAnimation | null>(null);
 
   const successButton = useRef<HTMLButtonElement>(null);
   const failedButton = useRef<HTMLButtonElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
+  // Fin de session : plus aucune carte dans la file pendant une révision
   useEffect(() => {
-    if (!isFlashcardReviewOpened) return;
-    if (flashcardsToReview.length === 0) {
-      setIsFinished(true);
-      if (deckId && flashcardInitialCount > 0)
-        setDeckLastCompletedReviewAt(deckId).catch(console.error);
-      setTimeout(() => {
-        setIsFinished(false);
-        navigate(-1);
-      }, 3500);
-      setIsFlashcardReviewOpened(false);
-    } else {
-      setCurrentFlashcard(flashcardsToReview[0]);
-    }
-  }, [flashcardsToReview, isFlashcardReviewOpened, navigate, deckId, setDeckLastCompletedReviewAt, flashcardInitialCount]);
+    if (!isFlashcardReviewOpened || flashcardsToReview.length > 0) return;
+    setIsFlashcardReviewOpened(false);
+    setIsFinished(true);
+    if (flashcardInitialCount > 0) setDeckLastCompletedReviewAt(deckId);
+  }, [
+    flashcardsToReview.length,
+    isFlashcardReviewOpened,
+    flashcardInitialCount,
+    deckId,
+    setDeckLastCompletedReviewAt,
+  ]);
 
+  // Écran de fin affiché quelques secondes, puis retour à la liste des decks
   useEffect(() => {
-    setDeck(decks?.find((deck) => deck.id === deckId) ?? ({} as Deck));
-  }, [decks, deckId]);
+    if (!isFinished) return;
+    const timeout = setTimeout(() => {
+      setIsFinished(false);
+      setFadeProgressBarToBlackAnimation(false);
+      navigate("/");
+    }, FINISHED_SCREEN_MS);
+    return () => clearTimeout(timeout);
+  }, [isFinished, navigate]);
 
-  useEffect(() => {
-    if (deck.id) {
-      setIsDataLoaded(true);
-      setFlashcardsToReview(flashcardUtils.getReviewableCards(deck.flashcards));
-      setIsDataLoaded(true);
-    }
-  }, [deck]);
-
-  useEffect(() => {
-    if (flashcardsToReview.length) {
-      setFlashcardInitialCount(flashcardsToReview.length);
-    }
-  }, [flashcardsToReview]);
+  const startReview = () => {
+    if (flashcardsToReview.length === 0) return;
+    setFlashcardInitialCount(flashcardsToReview.length);
+    setIsFlashcardReviewOpened(true);
+  };
 
   const triggerAnimations = (
-    animationType: "SUCCESS" | "FAILED" | "LEARNED",
+    animationType: AnimationType,
     reviewCount: number
   ) => {
     const triggeringButton =
       animationType === "FAILED" ? failedButton.current : successButton.current;
+    if (!triggeringButton || !progressBarRef.current) return;
 
-    if (triggeringButton && progressBarRef.current) {
-      setTriggerFloatingNumberAnimation({
-        start: {
-          x:
-            triggeringButton.getBoundingClientRect().left +
-            triggeringButton.getBoundingClientRect().width / 2,
-          y:
-            triggeringButton.getBoundingClientRect().top +
-            triggeringButton.getBoundingClientRect().height / 2,
-        },
-        end: {
-          x:
-            progressBarRef.current.getBoundingClientRect().left +
-            progressBarRef.current.getBoundingClientRect().width,
-          y:
-            progressBarRef.current.getBoundingClientRect().top +
-            progressBarRef.current.getBoundingClientRect().height / 2,
-        },
-        daysLeft: getDaysTillNextReview(
-          getNextReviewDate(reviewCount).getTime()
-        ),
-        success: animationType,
-      });
-    }
-  };
-
-  const addFlashcard = async (newQuestion: string, newAnswer: string) => {
-    if (newQuestion && newAnswer) {
-      try {
-        const docRef = await addDoc(
-          collection(db, `decks/${deckId}/flashcards`),
-          {
-            question: newQuestion.trim(),
-            answer: newAnswer.trim(),
-            reviewDate: new Date(),
-            reviewCount: 0,
-          }
-        );
-        setDeck((prevDeck) => ({
-          ...prevDeck,
-          flashcards: [
-            ...prevDeck.flashcards,
-            {
-              id: docRef.id,
-              question: newQuestion,
-              answer: newAnswer,
-              reviewDate: new Date(),
-              reviewCount: 0,
-              archived: false,
-            },
-          ],
-        }));
-      } catch (error) {
-        console.error("Erreur durant l'ajout d'une carte:", error);
-      }
-    }
-  };
-
-  const updateFlashcard = async (editedFlashcard: Flashcard) => {
-    await updateDoc(doc(db, `decks/${deckId}/flashcards`, editedFlashcard.id), {
-      question: editedFlashcard.question.trim(),
-      answer: editedFlashcard.answer.trim(),
+    const buttonRect = triggeringButton.getBoundingClientRect();
+    const barRect = progressBarRef.current.getBoundingClientRect();
+    setFloatingNumberAnimation({
+      start: {
+        x: buttonRect.left + buttonRect.width / 2,
+        y: buttonRect.top + buttonRect.height / 2,
+      },
+      end: { x: barRect.left + barRect.width, y: barRect.top + barRect.height / 2 },
+      daysLeft: getDaysTillNextReview(getNextReviewDate(reviewCount).getTime()),
+      success: animationType,
     });
-    setFlashcardsToReview((prevFlashcards) =>
-      prevFlashcards.map((flashcard) =>
-        flashcard.id === editedFlashcard.id ? editedFlashcard : flashcard
-      )
-    );
-    setDeck((prevDeck) => ({
-      ...prevDeck,
-      flashcards: prevDeck.flashcards.map((flashcard) =>
-        flashcard.id === editedFlashcard.id ? editedFlashcard : flashcard
-      ),
-    }));
   };
 
-  const removeFlashcard = async (flashcardId: string) => {
-    try {
-      await deleteDoc(doc(db, `decks/${deckId}/flashcards`, flashcardId));
-      setDeck((prevDeck) => {
-        return {
-          ...prevDeck,
-          flashcards: prevDeck.flashcards.filter(
-            (flashcard) => flashcard.id !== flashcardId
-          ),
-        };
-      });
-
-      setFlashcardsToReview((prevFlashcards) =>
-        prevFlashcards.filter((flashcard) => flashcard.id !== flashcardId)
-      );
-    } catch (error) {
-      console.error("Erreur durant la suppression d'une carte:", error);
-    }
-  };
-
-  const reviewFlashcard = async (reviewedFlashcard: Flashcard) => {
-    let updatedFlashcard = {};
+  const reviewFlashcard = (reviewedFlashcard: Flashcard) => {
     const newReviewCount = reviewedFlashcard.reviewCount + 1;
-    if (reviewedFlashcard.reviewCount > 6) {
+    if (reviewedFlashcard.reviewCount >= GOLDEN_CARD_THRESHOLD) {
       triggerAnimations("LEARNED", newReviewCount);
-      updatedFlashcard = {
-        archived: true,
-      };
-    } else {
-      triggerAnimations("SUCCESS", newReviewCount);
-      updatedFlashcard = {
-        reviewDate: getNextReviewDate(newReviewCount),
-        reviewCount: newReviewCount,
-      };
+      return updateFlashcard(deckId, reviewedFlashcard.id, { archived: true });
     }
-    try {
-      await updateDoc(
-        doc(db, `decks/${deckId}/flashcards`, reviewedFlashcard.id),
-        updatedFlashcard
-      );
-
-      setFlashcardsToReview((prevFlashcards) => {
-        return prevFlashcards.filter(
-          (flashcard) => flashcard.id !== reviewedFlashcard.id
-        );
-      });
-      // Garde deck synchronisé : c'est la source dont l'effet [deck] dérive la file de révision
-      setDeck((prevDeck) => ({
-        ...prevDeck,
-        flashcards: prevDeck.flashcards.map((flashcard) =>
-          flashcard.id === reviewedFlashcard.id
-            ? { ...flashcard, ...updatedFlashcard }
-            : flashcard
-        ),
-      }));
-    } catch (error) {
-      console.error("Erreur durant l'update d'une carte:", error);
-    }
+    triggerAnimations("SUCCESS", newReviewCount);
+    return updateFlashcard(deckId, reviewedFlashcard.id, {
+      reviewDate: getNextReviewDate(newReviewCount),
+      reviewCount: newReviewCount,
+    });
   };
 
-  const failFlashcard = async (failedFlashcard: Flashcard) => {
-    const newReviewCount =
-      failedFlashcard.reviewCount > 0 ? failedFlashcard.reviewCount - 1 : 0;
-    try {
-      triggerAnimations("FAILED", newReviewCount);
-      const failedUpdate = {
-        reviewDate: new Date(new Date().setDate(new Date().getDate() + 1)),
-        reviewCount: newReviewCount,
-      };
-      await updateDoc(
-        doc(db, `decks/${deckId}/flashcards`, failedFlashcard.id),
-        failedUpdate
-      );
-      setFlashcardsToReview((prevFlashcards) =>
-        prevFlashcards.filter(
-          (flashcard) => flashcard.id !== failedFlashcard.id
-        )
-      );
-      setDeck((prevDeck) => ({
-        ...prevDeck,
-        flashcards: prevDeck.flashcards.map((flashcard) =>
-          flashcard.id === failedFlashcard.id
-            ? { ...flashcard, ...failedUpdate }
-            : flashcard
-        ),
-      }));
-    } catch (error) {
-      console.error("Erreur durant l'update d'une carte:", error);
-    }
+  const failFlashcard = (failedFlashcard: Flashcard) => {
+    const newReviewCount = Math.max(0, failedFlashcard.reviewCount - 1);
+    triggerAnimations("FAILED", newReviewCount);
+    // Une carte ratée revient dès demain, quel que soit son palier
+    return updateFlashcard(deckId, failedFlashcard.id, {
+      reviewDate: getNextReviewDate(1),
+      reviewCount: newReviewCount,
+    });
   };
 
-  const toggleReader = () => setIsReaderEnabled((prev) => !prev);
+  const editFlashcard = (edited: Flashcard) =>
+    updateFlashcard(deckId, edited.id, {
+      question: edited.question.trim(),
+      answer: edited.answer.trim(),
+    });
+
+  const toggleReader = useCallback(
+    () => setIsReaderEnabled((prev) => !prev),
+    []
+  );
 
   const goBack = () => {
-    switch (true) {
-      case isFlashcardReviewOpened:
-        setIsFlashcardReviewOpened(false);
-        break;
-      case isFlashcardAdderOpened:
-        setIsFlashcardAdderOpened(false);
-        break;
-      case isFlashcardRemoverOpened:
-        setIsFlashcardRemoverOpened(false);
-        break;
-      default:
-        navigate(-1);
-        break;
-    }
+    if (isFlashcardReviewOpened) setIsFlashcardReviewOpened(false);
+    else if (isFlashcardAdderOpened) setIsFlashcardAdderOpened(false);
+    else if (isFlashcardRemoverOpened) setIsFlashcardRemoverOpened(false);
+    else navigate("/");
   };
+
+  // Decks chargés mais deck introuvable (supprimé, URL erronée) : retour à la liste
+  if (decks && !deck) return <Navigate to="/" replace />;
+  // Decks pas encore chargés : le Loader global est affiché par ProtectedRoute
+  if (!deck) return null;
+
+  const isSubViewOpened =
+    isFlashcardReviewOpened || isFlashcardAdderOpened || isFlashcardRemoverOpened;
 
   return (
     <>
-      {isDataLoaded ? (
-        <div className="flex flex-col min-h-dvh w-full items-center justify-center gap-y-10 px-6 py-16 md:py-24">
-          {(isFinished || isFlashcardReviewOpened) && (
-            <>
-              <ProgressBar
-                ref={progressBarRef}
-                initialCount={flashcardInitialCount}
-                counter={flashcardsToReview.length}
-                className={`w-5/6 fixed top-8 ${
-                  fadeProgressBarToBlackAnimation
-                    ? "fade-to-black opacity-0"
-                    : ""
-                }`}
-                triggerAnimations={triggerProgressBarAnimations}
-              />
-              {triggerFloatingNumberAnimation && (
-                <span
-                  className={`fixed text-6xl font-bold z-50 translate-y-44 ${
-                    triggerFloatingNumberAnimation.success
-                      ? "text-yellow-500"
-                      : "text-contrast"
-                  }`}
-                  style={
-                    {
-                      left: triggerFloatingNumberAnimation.start.x,
-                      top: triggerFloatingNumberAnimation.start.y,
-                      transform: "translate(-50%, -50%)",
-                      animation: `float-to-bar 0.7s cubic-bezier(0,0,.2,1) forwards`,
-                      "--float-x": `${
-                        triggerFloatingNumberAnimation.end.x -
-                        triggerFloatingNumberAnimation.start.x
-                      }px`,
-                      "--float-y": `${
-                        triggerFloatingNumberAnimation.end.y -
-                        triggerFloatingNumberAnimation.start.y
-                      }px`,
-                    } as React.CSSProperties
-                  }
-                  onAnimationEnd={() => {
-                    setTriggerProgressBarAnimations(true);
-                    setTriggerFloatingNumberAnimation(null);
-                    setTimeout(
-                      () => setTriggerProgressBarAnimations(false),
-                      200
-                    );
-                    if (isFinished) {
-                      setFadeProgressBarToBlackAnimation(true);
-                    }
-                  }}
-                >
-                  {triggerFloatingNumberAnimation.success === "LEARNED"
-                    ? "🧠"
-                    : `${
-                        triggerFloatingNumberAnimation.success === "SUCCESS"
-                          ? "+"
-                          : "-"
-                      }
-                  ${triggerFloatingNumberAnimation.daysLeft} j`}
-                </span>
-              )}
-            </>
-          )}
-          {isFinished && (
-            <div className="flex flex-col items-center justify-center gap-4 animate-modal-in">
-              <img
-                src="/icons/logo-512.png"
-                alt="Spira"
-                className="w-24 h-24 animate-bounce"
-              />
-              <div className="text-center">
-                <p className="text-2xl md:text-3xl font-extrabold text-transparent bg-gradient-to-r from-contrast to-primary bg-clip-text">
-                  Brain LEVEL UP !
-                </p>
-                <p className="text-muted text-sm mt-2">Toutes les cartes sont révisées</p>
-              </div>
-            </div>
-          )}
-          {!isFinished &&
-            !(
-              isFlashcardReviewOpened ||
-              isFlashcardAdderOpened ||
-              isFlashcardRemoverOpened
-            ) && (
-              <FlashcardHomepage
-                numberOfCards={flashcardsToReview.length}
-                totalCards={deck.flashcards.length}
-                deckName={deck.name}
-                setIsFlashcardReviewOpened={setIsFlashcardReviewOpened}
-                setIsFlashcardAdderOpened={setIsFlashcardAdderOpened}
-                setIsFlashcardRemoverOpened={setIsFlashcardRemoverOpened}
-                removeDeck={() => setIsConfirmingDeckDelete(true)}
-                editDeckName={() => setIsEditDeckNameOpen(true)}
-                isReaderEnabled={isReaderEnabled}
-                toggleReader={toggleReader}
-              />
-            )}
-
-          {isFlashcardReviewOpened && currentFlashcard && (
-            <>
-              <FlashcardReviewer
-                key={currentFlashcard.id}
-                flashcard={currentFlashcard}
-                markAsReviewed={reviewFlashcard}
-                markAsFailed={failFlashcard}
-                updateFalshcard={updateFlashcard}
-                reviewButtonRefs={{ failedButton, successButton }}
-                readerEnabled={isReaderEnabled}
-                toggleReader={toggleReader}
-              />
-            </>
-          )}
-
-          {isFlashcardAdderOpened && (
-            <FlashcardAdder addFlashcard={addFlashcard} />
-          )}
-
-          {isFlashcardRemoverOpened && (
-            <FlashcardEditor
-              flashcards={deck.flashcards}
-              removeFlashcard={removeFlashcard}
-              updateFlashcard={updateFlashcard}
+      <div className="flex flex-col min-h-dvh w-full items-center justify-center gap-y-10 px-6 py-16 md:py-24">
+        {(isFinished || isFlashcardReviewOpened) && (
+          <>
+            <ProgressBar
+              ref={progressBarRef}
+              initialCount={flashcardInitialCount}
+              counter={flashcardsToReview.length}
+              className={`w-5/6 fixed top-8 ${
+                fadeProgressBarToBlackAnimation ? "fade-to-black opacity-0" : ""
+              }`}
+              triggerAnimations={triggerProgressBarAnimations}
             />
-          )}
+            {floatingNumberAnimation && (
+              <span
+                aria-hidden
+                className={`fixed text-6xl font-bold z-50 translate-y-44 ${
+                  floatingNumberAnimation.success === "FAILED"
+                    ? "text-contrast"
+                    : "text-yellow-500"
+                }`}
+                style={
+                  {
+                    left: floatingNumberAnimation.start.x,
+                    top: floatingNumberAnimation.start.y,
+                    transform: "translate(-50%, -50%)",
+                    animation: "float-to-bar 0.7s cubic-bezier(0,0,.2,1) forwards",
+                    "--float-x": `${
+                      floatingNumberAnimation.end.x - floatingNumberAnimation.start.x
+                    }px`,
+                    "--float-y": `${
+                      floatingNumberAnimation.end.y - floatingNumberAnimation.start.y
+                    }px`,
+                  } as React.CSSProperties
+                }
+                onAnimationEnd={() => {
+                  setTriggerProgressBarAnimations(true);
+                  setFloatingNumberAnimation(null);
+                  setTimeout(() => setTriggerProgressBarAnimations(false), 200);
+                  if (isFinished) setFadeProgressBarToBlackAnimation(true);
+                }}
+              >
+                {floatingNumberAnimation.success === "LEARNED"
+                  ? "🧠"
+                  : `${floatingNumberAnimation.success === "SUCCESS" ? "+" : "-"}${
+                      floatingNumberAnimation.daysLeft
+                    } j`}
+              </span>
+            )}
+          </>
+        )}
 
-          <RoundButton onClick={goBack} position="left">
-            <ChevronLeft />
-          </RoundButton>
-        </div>
-      ) : null}
+        {isFinished && (
+          <div
+            className="flex flex-col items-center justify-center gap-4 animate-modal-in"
+            role="status"
+          >
+            <img
+              src="/icons/logo-512.png"
+              alt=""
+              width={96}
+              height={96}
+              className="w-24 h-24 animate-bounce"
+            />
+            <div className="text-center">
+              <p className="text-2xl md:text-3xl font-extrabold text-transparent bg-gradient-to-r from-contrast to-primary bg-clip-text">
+                Brain LEVEL UP !
+              </p>
+              <p className="text-muted text-sm mt-2">
+                Toutes les cartes sont révisées
+              </p>
+            </div>
+          </div>
+        )}
+
+        {!isFinished && !isSubViewOpened && (
+          <FlashcardHomepage
+            numberOfCards={flashcardsToReview.length}
+            totalCards={deck.flashcards.length}
+            deckName={deck.name}
+            startReview={startReview}
+            setIsFlashcardAdderOpened={setIsFlashcardAdderOpened}
+            setIsFlashcardRemoverOpened={setIsFlashcardRemoverOpened}
+            removeDeck={() => setIsConfirmingDeckDelete(true)}
+            editDeckName={() => setIsEditDeckNameOpen(true)}
+            isReaderEnabled={isReaderEnabled}
+            toggleReader={toggleReader}
+          />
+        )}
+
+        {isFlashcardReviewOpened && currentFlashcard && (
+          <FlashcardReviewer
+            key={currentFlashcard.id}
+            flashcard={currentFlashcard}
+            markAsReviewed={reviewFlashcard}
+            markAsFailed={failFlashcard}
+            updateFlashcard={editFlashcard}
+            reviewButtonRefs={{ failedButton, successButton }}
+            readerEnabled={isReaderEnabled}
+            toggleReader={toggleReader}
+          />
+        )}
+
+        {isFlashcardAdderOpened && (
+          <FlashcardAdder
+            addFlashcard={(question, answer) =>
+              addFlashcard(deckId, question, answer)
+            }
+          />
+        )}
+
+        {isFlashcardRemoverOpened && (
+          <FlashcardEditor
+            flashcards={deck.flashcards}
+            removeFlashcard={(flashcardId) => removeFlashcard(deckId, flashcardId)}
+            updateFlashcard={editFlashcard}
+          />
+        )}
+
+        <RoundButton
+          onClick={goBack}
+          position="left"
+          aria-label={isSubViewOpened ? "Retour au deck" : "Retour aux decks"}
+        >
+          <ChevronLeft />
+        </RoundButton>
+      </div>
+
       {isConfirmingDeckDelete && (
         <Popin
           onClose={() => setIsConfirmingDeckDelete(false)}
@@ -447,8 +328,8 @@ const FlashcardPage: React.FC = () => {
                 additionnalClassName="flex-1"
                 onClick={async () => {
                   setIsConfirmingDeckDelete(false);
-                  await removeDeck(deckId ?? "");
-                  navigate(-1);
+                  await removeDeck(deckId);
+                  navigate("/");
                 }}
               >
                 Supprimer
@@ -457,14 +338,12 @@ const FlashcardPage: React.FC = () => {
           </div>
         </Popin>
       )}
+
       {isEditDeckNameOpen && (
         <EditDeckName
           initialDeckName={deck.name}
           onEdit={(newName: string | null) => {
-            if (newName) {
-              updateDoc(doc(db, "decks", deck.id), { name: newName });
-              setDeck((prevDeck) => ({ ...prevDeck, name: newName }));
-            }
+            if (newName) editDeckName(deckId, newName);
             setIsEditDeckNameOpen(false);
           }}
         />

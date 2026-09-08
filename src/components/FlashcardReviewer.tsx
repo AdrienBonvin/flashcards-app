@@ -6,7 +6,7 @@ import ThumbDown from "@mui/icons-material/ThumbDown";
 import TouchApp from "@mui/icons-material/TouchApp";
 import Check from "@mui/icons-material/Check";
 import Close from "@mui/icons-material/Close";
-import { Flashcard } from "../types";
+import { Flashcard, GOLDEN_CARD_THRESHOLD } from "../types";
 import FlipCard from "./FlipCard";
 import Edit from "@mui/icons-material/Edit";
 import VolumeUp from "@mui/icons-material/VolumeUp";
@@ -17,7 +17,7 @@ interface FlashcardReviewerProps {
   flashcard: Flashcard;
   markAsReviewed: (flashcard: Flashcard) => void;
   markAsFailed: (flashcard: Flashcard) => void;
-  updateFalshcard: (editedFlashcard: Flashcard) => Promise<void>;
+  updateFlashcard: (editedFlashcard: Flashcard) => Promise<void>;
   reviewButtonRefs: {
     successButton: Ref<HTMLButtonElement>;
     failedButton: Ref<HTMLButtonElement>;
@@ -30,7 +30,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
   flashcard,
   markAsReviewed,
   markAsFailed,
-  updateFalshcard,
+  updateFlashcard,
   reviewButtonRefs,
   readerEnabled = false,
   toggleReader,
@@ -39,7 +39,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
   const [showButtons, setShowButtons] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [draftText, setDraftText] = useState("");
-  const lastCardReview = flashcard.reviewCount > 6;
+  const lastCardReview = flashcard.reviewCount >= GOLDEN_CARD_THRESHOLD;
   // On n'édite que la face visible : réponse si la carte est retournée, question sinon
   const editedField = showAnswer ? "answer" : "question";
 
@@ -67,7 +67,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
   const saveEdit = async () => {
     const text = draftText.trim();
     if (text) {
-      await updateFalshcard({ ...flashcard, [editedField]: text });
+      await updateFlashcard({ ...flashcard, [editedField]: text });
     }
     setIsEditing(false);
   };
@@ -101,6 +101,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
               additionnalClassName="w-28 h-20 md:w-32 md:h-24 rounded-2xl"
               variant="contrast"
               outlineStyle
+              aria-label="Annuler la modification"
             >
               <Close style={{ fontSize: "2rem" }} />
             </Button>
@@ -109,6 +110,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
               disabled={!draftText.trim()}
               additionnalClassName="w-28 h-20 md:w-32 md:h-24 rounded-2xl"
               variant="primary"
+              aria-label="Enregistrer la modification"
             >
               <Check style={{ fontSize: "2rem" }} />
             </Button>
@@ -131,6 +133,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
                 additionnalClassName="w-28 h-20 md:w-32 md:h-24 rounded-2xl"
                 variant="contrast"
                 outlineStyle={lastCardReview}
+                aria-label="Je ne savais pas"
               >
                 <ThumbDown
                   style={{ fill: "currentcolor", fontSize: "3rem" }}
@@ -146,6 +149,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
                   lastCardReview ? "animate-pulse" : ""
                 }`}
                 variant="primary"
+                aria-label="Je savais"
               >
                 <ThumbUp
                   style={{ fill: "currentcolor", fontSize: "3rem" }}
@@ -162,7 +166,11 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
               </p>
             </div>
           )}
-          <RoundButton position="right" onClick={startEditing}>
+          <RoundButton
+            position="right"
+            onClick={startEditing}
+            aria-label={showAnswer ? "Modifier la réponse" : "Modifier la question"}
+          >
             <Edit />
           </RoundButton>
           {toggleReader && (
