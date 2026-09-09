@@ -209,11 +209,11 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
               </p>
             </div>
           )}
-          {/* Barre d'actions secondaires : centrée en bas, entre le bouton retour et le bord droit */}
+          {/* Barre d'actions secondaires : centrée en bas sur mobile, à droite sur desktop */}
           <div
             role="toolbar"
             aria-label="Actions sur la carte"
-            className="fixed bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 p-1 rounded-full bg-surface/90 backdrop-blur border border-surface-elevated shadow-card"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 md:bottom-8 md:left-auto md:translate-x-0 md:right-8 z-10 flex items-center gap-1 p-1 rounded-full bg-surface/90 backdrop-blur border border-surface-elevated shadow-card"
           >
             {toggleReader && (
               <RoundButton
