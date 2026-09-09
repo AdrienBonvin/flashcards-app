@@ -1,6 +1,7 @@
 import { Ref, useEffect, useState } from "react";
 import { Button } from "./Button";
 import { RoundButton } from "./RoundButton";
+import Popin from "./Popin";
 import { Flashcard, GOLDEN_CARD_THRESHOLD } from "../types";
 import FlipCard from "./FlipCard";
 import { speak, stopSpeaking } from "../utils/speechReader";
@@ -11,6 +12,7 @@ interface FlashcardReviewerProps {
   markAsReviewed: (flashcard: Flashcard) => void;
   markAsFailed: (flashcard: Flashcard) => void;
   updateFlashcard: (editedFlashcard: Flashcard) => Promise<void>;
+  removeFlashcard: (flashcardId: string) => void;
   reviewButtonRefs: {
     successButton: Ref<HTMLButtonElement>;
     failedButton: Ref<HTMLButtonElement>;
@@ -24,6 +26,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
   markAsReviewed,
   markAsFailed,
   updateFlashcard,
+  removeFlashcard,
   reviewButtonRefs,
   readerEnabled = false,
   toggleReader,
@@ -31,6 +34,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
   const [showAnswer, setShowAnswer] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [draftText, setDraftText] = useState("");
   const lastCardReview = flashcard.reviewCount >= GOLDEN_CARD_THRESHOLD;
   // On n'édite que la face visible : réponse si la carte est retournée, question sinon
@@ -43,7 +47,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
   // Raccourcis clavier (desktop) : Espace/Entrée retourne, ← je ne savais pas,
   // → je savais, E modifie. Inactifs pendant l'édition ou dans un champ de saisie.
   useEffect(() => {
-    if (isEditing) return;
+    if (isEditing || isConfirmingDelete) return;
     const onKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       // La carte (role=button) et les boutons gèrent déjà Entrée/Espace eux-mêmes
@@ -74,7 +78,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [isEditing, showButtons, showAnswer, flashcard, markAsFailed, markAsReviewed]);
+  }, [isEditing, isConfirmingDelete, showButtons, showAnswer, flashcard, markAsFailed, markAsReviewed]);
 
   // Lit la face visible quand elle apparaît (nouvelle carte, flip ou activation),
   // coupe dès que la lecture est désactivée ou qu'on passe en édition
@@ -212,6 +216,49 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
           >
             <Icon name="edit" />
           </RoundButton>
+          <RoundButton
+            position="right"
+            onClick={() => setIsConfirmingDelete(true)}
+            className={`opacity-60 hover:opacity-100 hover:!border-contrast/60 ${
+              toggleReader ? "!bottom-40 md:!bottom-48" : "!bottom-24 md:!bottom-28"
+            }`}
+            aria-label="Supprimer cette carte"
+          >
+            <Icon name="delete" />
+          </RoundButton>
+          {isConfirmingDelete && (
+            <Popin
+              onClose={() => setIsConfirmingDelete(false)}
+              title="Supprimer la carte ?"
+            >
+              <div className="flex flex-col gap-6">
+                <p className="text-sm text-muted line-clamp-3">
+                  « {flashcard.question} » sera supprimée définitivement et retirée
+                  de cette révision.
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    variant="primary"
+                    outlineStyle
+                    additionnalClassName="flex-1"
+                    onClick={() => setIsConfirmingDelete(false)}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    variant="contrast"
+                    additionnalClassName="flex-1"
+                    onClick={() => {
+                      setIsConfirmingDelete(false);
+                      removeFlashcard(flashcard.id);
+                    }}
+                  >
+                    Supprimer
+                  </Button>
+                </div>
+              </div>
+            </Popin>
+          )}
           {toggleReader && (
             <RoundButton
               position="right"

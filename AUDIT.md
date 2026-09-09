@@ -51,6 +51,7 @@ Chaque point coché correspond à un commit sur la branche `claude/spira-audit-i
 - [x] FlipCard : Espace ne retournait pas la carte, pas d'état `aria-pressed`.
 - [x] Barre de progression sans `role="progressbar"`.
 - [x] Raccourcis clavier en révision (Espace, ←, →, E).
+- [x] Suppression d'une carte possible pendant la révision (avec confirmation).
 
 ## 6. Sécurité
 

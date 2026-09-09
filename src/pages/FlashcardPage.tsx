@@ -280,6 +280,7 @@ const FlashcardPage: React.FC = () => {
             markAsReviewed={reviewFlashcard}
             markAsFailed={failFlashcard}
             updateFlashcard={editFlashcard}
+            removeFlashcard={(flashcardId) => removeFlashcard(deckId, flashcardId)}
             reviewButtonRefs={{ failedButton, successButton }}
             readerEnabled={isReaderEnabled}
             toggleReader={toggleReader}
