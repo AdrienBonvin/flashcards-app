@@ -113,7 +113,7 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
     "flex-1 w-full bg-transparent text-center text-gray-900 text-xl md:text-2xl font-semibold resize-none focus:outline-none placeholder:text-gray-400";
 
   return (
-    <div className="flex flex-col justify-start items-center h-5/6 w-5/6">
+    <div className="flex flex-col justify-start items-center h-5/6 w-5/6 pb-16">
       {isEditing ? (
         <>
           {/* Édition en place : même gabarit que la FlipCard, seule la face visible est éditable */}
@@ -209,23 +209,43 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
               </p>
             </div>
           )}
-          <RoundButton
-            position="right"
-            onClick={startEditing}
-            aria-label={showAnswer ? "Modifier la réponse" : "Modifier la question"}
+          {/* Barre d'actions secondaires : centrée en bas, entre le bouton retour et le bord droit */}
+          <div
+            role="toolbar"
+            aria-label="Actions sur la carte"
+            className="fixed bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 p-1 rounded-full bg-surface/90 backdrop-blur border border-surface-elevated shadow-card"
           >
-            <Icon name="edit" />
-          </RoundButton>
-          <RoundButton
-            position="right"
-            onClick={() => setIsConfirmingDelete(true)}
-            className={`opacity-60 hover:opacity-100 hover:!border-contrast/60 ${
-              toggleReader ? "!bottom-40 md:!bottom-48" : "!bottom-24 md:!bottom-28"
-            }`}
-            aria-label="Supprimer cette carte"
-          >
-            <Icon name="delete" />
-          </RoundButton>
+            {toggleReader && (
+              <RoundButton
+                onClick={toggleReader}
+                aria-pressed={readerEnabled}
+                className={`!w-10 !h-10 !border-transparent !bg-transparent hover:!bg-surface-elevated ${
+                  readerEnabled ? "text-primary" : "text-muted"
+                }`}
+                aria-label={
+                  readerEnabled
+                    ? "Désactiver la lecture audio"
+                    : "Activer la lecture audio"
+                }
+              >
+                <Icon name={readerEnabled ? "volume-up" : "volume-off"} size="1.35rem" />
+              </RoundButton>
+            )}
+            <RoundButton
+              onClick={startEditing}
+              className="!w-10 !h-10 !border-transparent !bg-transparent hover:!bg-surface-elevated"
+              aria-label={showAnswer ? "Modifier la réponse" : "Modifier la question"}
+            >
+              <Icon name="edit" size="1.35rem" />
+            </RoundButton>
+            <RoundButton
+              onClick={() => setIsConfirmingDelete(true)}
+              className="!w-10 !h-10 !border-transparent !bg-transparent text-muted hover:text-contrast hover:!bg-surface-elevated"
+              aria-label="Supprimer cette carte"
+            >
+              <Icon name="delete" size="1.35rem" />
+            </RoundButton>
+          </div>
           {isConfirmingDelete && (
             <Popin
               onClose={() => setIsConfirmingDelete(false)}
@@ -258,24 +278,6 @@ export const FlashcardReviewer: React.FC<FlashcardReviewerProps> = ({
                 </div>
               </div>
             </Popin>
-          )}
-          {toggleReader && (
-            <RoundButton
-              position="right"
-              onClick={toggleReader}
-              className="!bottom-24 md:!bottom-28 opacity-60 hover:opacity-100"
-              aria-label={
-                readerEnabled
-                  ? "Désactiver la lecture audio"
-                  : "Activer la lecture audio"
-              }
-            >
-              {readerEnabled ? (
-                <Icon name="volume-up" className="text-primary" />
-              ) : (
-                <Icon name="volume-off" />
-              )}
-            </RoundButton>
           )}
         </>
       )}
