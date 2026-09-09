@@ -1,7 +1,7 @@
 # Audit Spira — septembre 2026
 
 État des lieux du code (React 19 / Vite / Firebase / PWA) et suivi des corrections.
-Chaque point coché correspond à un commit sur la branche `claude/spira-audit-improvements-t7o0fj`.
+Chaque point coché correspond à un commit dédié.
 
 ## 1. Bugs bloquants
 
